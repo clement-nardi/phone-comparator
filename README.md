@@ -1,4 +1,6 @@
-#Setup
+
+# Setup
+
 Download and install:
 
  - Docker desktop
