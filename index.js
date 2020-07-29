@@ -12,6 +12,11 @@ cachedRequest({uri: 'https://www.gsmarena.com/huawei_p40_pro+-10118.php',
   if (response.headers['x-from-cache'] === 1) {
     console.log('from cache!')
   }
+  var specs = extractSpecsFromBody(body)
+  console.log(specs)
+})
+
+function extractSpecsFromBody(body) {
 
   var root = HTMLParser.parse(body)
 
@@ -86,10 +91,69 @@ cachedRequest({uri: 'https://www.gsmarena.com/huawei_p40_pro+-10118.php',
       case 'displayother':
         specs['refreshRate'] = parseInt(value.match(/(\d+)Hz/)[1])
         break
+      case 'cam1modules':
+        specs['rearCameraModules'] = extractCameraSpecs(value)
+        break
+      case 'cam2modules':
+        specs['frontCameraModules'] = extractCameraSpecs(value)
+        break
+      case 'usb':
+        specs['usbC'] = value.includes('Type-C')
+        break
+      case 'batdescription1':
+        specs['batteryCapacity'] = parseInt(value.match(/(\d+) mAh/)[1])
+        break
+      case 'Charging':
+        specs['maxChargingPower'] = parseInt(value.match(/(\d+)W/))
+        specs['wirelessCharging'] = value.includes('wireless')
+        break
+      case 'batlife':
+        specs['enduranceRating'] = parseInt(value.match(/Endurance rating (\d+)h/)[1])
+        break
+      case 'internalmemory':
+        var memoryVersions = [...value.matchAll(/([\d.]+)GB ([\d.]+)GB RAM/g)]
+        specs['memoryVersions'] = []
+        for (var version of memoryVersions) {
+          specs['memoryVersions'].push({'RAM': version[2], 'storage': version[1]})
+        }
+        break
+      case 'cam1video':
+        var maxFps = 0
+        for (var fpsMatch of value.matchAll(/(\d+)fps/g)) {
+          maxFps = Math.max(maxFps,parseInt(fpsMatch[1]))
+        }
+        if (maxFps>0) {specs['maxFPS'] = maxFps}
+        break
+
+
     }
 
   }
 
-  console.log(specs)
+  return specs
+}
 
-});
+function extractCameraSpecs(value) {
+    var modules = value.split('\n')
+    var cameraSpecs = []
+    for (var module of modules) {
+      cameraSpecs.push(extractCameraModuleSpecs(module))
+    }
+    return cameraSpecs
+}
+
+function extractCameraModuleSpecs(module) {
+  var moduleSpecs = {}
+  console.log('cam module: ' + module)
+  var match
+  if (match = module.match(/([\d.]+) MP/)) { moduleSpecs['megapixels'] = parseFloat(match[1]) }
+  if (match = module.match(/f\/([\d.]+)/)) { moduleSpecs['maxAperture'] = parseFloat(match[1]) }
+  if (match = module.match(/(\d+)mm/)) { moduleSpecs['focalLength'] = parseFloat(match[1]) }
+  if (match = module.match(/([\d.]+)x optical/)) { moduleSpecs['opticalZoom'] = parseFloat(match[1]) }
+  if (match = module.match(/1\/([\d.]+)"/)) { moduleSpecs['sensorSize'] = 1/parseFloat(match[1]) }
+  if (match = module.match(/([\d.]+)µm/)) { moduleSpecs['pixelSize'] = parseFloat(match[1]) }
+  moduleSpecs['autofocus'] = module.includes('omnidirectional')?'omniPD':
+                             module.includes('PDAF')?'PD':undefined
+  moduleSpecs['OIS'] = module.includes('OIS')
+  return moduleSpecs
+}
