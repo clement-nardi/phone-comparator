@@ -4,22 +4,31 @@ var HTMLParser = require('node-html-parser')
 
 cachedRequest.setCacheDirectory('./httpCache')
 
-cachedRequest({uri: 'https://www.gsmarena.com/huawei_p40_pro+-10118.php',
-               ttl: 1000*60*60*24*365*1000}, function (error, response, body) {
-  if (error) {
-    console.err(error)
-  }
-  if (response.headers['x-from-cache'] === 1) {
-    console.log('from cache!')
-  }
-  var specs = extractSpecsFromBody(body)
-  console.log(specs)
-})
+module.exports = {downloadSpecs: downloadSpecs,
+extractSpecsFromBody: extractSpecsFromBody}
+
+function downloadSpecs(uri, forceDownload = false) {
+  return new Promise((resolve, reject) => {
+    cachedRequest({uri: uri,
+                   ttl: forceDownload?0:1000*60*60*24*365*1000}, function (error, response, body) {
+      if (error) {
+        reject(error)
+        return
+      }
+      if (response.headers['x-from-cache'] === 1) {
+        //console.log('from cache!')
+      }
+      var specs = extractSpecsFromBody(body)
+      //console.log(specs)
+      resolve(specs)
+    })
+  })
+}
+
 
 function extractSpecsFromBody(body) {
 
   var root = HTMLParser.parse(body)
-
   var specs = {}
 
   for (var el of root.querySelectorAll('.nfo')) {
@@ -27,7 +36,7 @@ function extractSpecsFromBody(body) {
     var label = el.parentNode.querySelector('.ttl').text
     var value = el.text
 
-    console.log(dataSpec + ' (' + label + '): \t' + value)
+    //console.log(dataSpec + ' (' + label + '): \t' + value)
 
     var key = dataSpec?dataSpec:label
 
@@ -144,7 +153,7 @@ function extractCameraSpecs(value) {
 
 function extractCameraModuleSpecs(module) {
   var moduleSpecs = {}
-  console.log('cam module: ' + module)
+  //console.log('cam module: ' + module)
   var match
   if (match = module.match(/([\d.]+) MP/)) { moduleSpecs['megapixels'] = parseFloat(match[1]) }
   if (match = module.match(/f\/([\d.]+)/)) { moduleSpecs['maxAperture'] = parseFloat(match[1]) }

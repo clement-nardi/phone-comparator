@@ -1,0 +1,86 @@
+{
+  "height": 158.2,
+  "width": 72.6,
+  "thickness": 9,
+  "weight": 226,
+  "ipCertification": 68,
+  "hasOLED": true,
+  "screenSize": 6.58,
+  "screenToBodyRatio": 91.6,
+  "resolutionWidth": 1200,
+  "resolutionHeight": 2640,
+  "ppi": 441,
+  "refreshRate": 90,
+  "androidVersion": 10,
+  "hasGoogleServices": false,
+  "transistorSize": 7,
+  "nbCores": 8,
+  "maxClock": 2.86,
+  "memoryVersions": [
+    {
+      "RAM": "8",
+      "storage": "256"
+    },
+    {
+      "RAM": "8",
+      "storage": "512"
+    }
+  ],
+  "rearCameraModules": [
+    {
+      "megapixels": 50,
+      "maxAperture": 1.9,
+      "focalLength": 23,
+      "sensorSize": 0.78125,
+      "pixelSize": 2.44,
+      "autofocus": "omniPD",
+      "OIS": true
+    },
+    {
+      "megapixels": 8,
+      "maxAperture": 4.4,
+      "focalLength": 240,
+      "opticalZoom": 10,
+      "autofocus": "PD",
+      "OIS": true
+    },
+    {
+      "megapixels": 8,
+      "maxAperture": 2.4,
+      "focalLength": 80,
+      "opticalZoom": 3,
+      "autofocus": "PD",
+      "OIS": true
+    },
+    {
+      "megapixels": 40,
+      "maxAperture": 1.8,
+      "focalLength": 18,
+      "sensorSize": 0.6493506493506493,
+      "autofocus": "PD",
+      "OIS": false
+    },
+    {
+      "OIS": false
+    }
+  ],
+  "maxFPS": 7680,
+  "frontCameraModules": [
+    {
+      "megapixels": 32,
+      "maxAperture": 2.2,
+      "focalLength": 26,
+      "sensorSize": 0.35714285714285715,
+      "pixelSize": 0.8,
+      "OIS": false
+    },
+    {
+      "OIS": false
+    }
+  ],
+  "usbC": true,
+  "batteryCapacity": 4200,
+  "maxChargingPower": 40,
+  "wirelessCharging": true,
+  "enduranceRating": 95
+}
