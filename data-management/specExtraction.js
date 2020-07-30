@@ -1,30 +1,6 @@
-var request = require('request')
-var cachedRequest = require('cached-request')(request)
 var HTMLParser = require('node-html-parser')
 
-cachedRequest.setCacheDirectory('./httpCache')
-
-module.exports = {downloadSpecs: downloadSpecs,
-extractSpecsFromBody: extractSpecsFromBody}
-
-function downloadSpecs(uri, forceDownload = false) {
-  return new Promise((resolve, reject) => {
-    cachedRequest({uri: uri,
-                   ttl: forceDownload?0:1000*60*60*24*365*1000}, function (error, response, body) {
-      if (error) {
-        reject(error)
-        return
-      }
-      if (response.headers['x-from-cache'] === 1) {
-        //console.log('from cache!')
-      }
-      var specs = extractSpecsFromBody(body)
-      //console.log(specs)
-      resolve(specs)
-    })
-  })
-}
-
+module.exports = {extractSpecsFromBody: extractSpecsFromBody}
 
 function extractSpecsFromBody(body) {
 

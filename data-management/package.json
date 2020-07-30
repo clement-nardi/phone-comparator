@@ -21,9 +21,10 @@
   },
   "homepage": "https://github.com/clement-nardi/phone-comparator#readme",
   "dependencies": {
-    "cached-request": "^2.0.1",
-    "node-html-parser": "^1.2.20",
-    "request": "^2.88.2"
+    "async-mutex": "^0.2.4",
+    "filenamify": "^4.1.0",
+    "node-fetch": "^2.6.0",
+    "node-html-parser": "^1.2.20"
   },
   "devDependencies": {
     "jest": "^26.1.0"
