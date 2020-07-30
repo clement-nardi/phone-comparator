@@ -1,8 +1,12 @@
 var {extractSpecsFromBody} = require('./specExtraction')
 var {fetchBodyWithCache} = require('./httpCache')
+var {fetchPhoneList} = require('./prices')
 
 
-
+fetchPhoneList()
+.then(list => {
+  console.log(list)
+})
 
 for (var uri of ['https://www.gsmarena.com/huawei_p40_pro+-10118.php',
 'https://www.gsmarena.com/oppo_reno_10x_zoom-9654.php',
