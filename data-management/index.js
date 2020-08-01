@@ -1,12 +1,13 @@
 var {extractSpecsFromBody} = require('./specExtraction')
 var {fetchBodyWithCache} = require('./httpCache')
 var {fetchPhoneList} = require('./prices')
+var {findAllSpecs} = require('./spec-finder')
 
-
-fetchPhoneList()
-.then(list => {
-  console.log(list)
-})
+try {
+  fetchPhoneList()
+  .then(list => {
+    findAllSpecs(list)
+  })
 
 for (var uri of ['https://www.gsmarena.com/huawei_p40_pro+-10118.php',
 'https://www.gsmarena.com/oppo_reno_10x_zoom-9654.php',
@@ -19,3 +20,10 @@ for (var uri of ['https://www.gsmarena.com/huawei_p40_pro+-10118.php',
   })
   .catch(err => console.error(err))
 }
+
+} catch (err) {
+console.error('uncaught error...')
+console.error(err)
+}
+
+console.log('the end')

@@ -1,2 +1,4 @@
 httpCache
 node_modules
+http_proxies.txt
+proxyStats
