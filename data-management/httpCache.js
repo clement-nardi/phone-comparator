@@ -7,49 +7,22 @@ var HttpsProxyAgent = require('https-proxy-agent');
 
 const cacheDir = './httpCache/'
 const proxyStats = './proxyStats/'
-const nbParallelProxies = 40
+const nbParallelProxies = 20
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
 function fetchBody(uri) {
-  if (typeof fetchBody.mutex == 'undefined') {
-    fetchBody.mutex = new Mutex()
-  }
   if (typeof fetchBody.proxies == 'undefined') {
-    console.log('setup')
-    var proxies = []
-    for (var ipPort of oldFs.readFileSync('./http_proxies.txt', {encoding: 'utf8'}).split('\r\n')) {
-      if (! ipPort.match(/\d+\.\d+\.\d+\.\d+.*/)) {
-        continue
-      }
-      var statFile = proxyStats + filenamify(ipPort)
-      //console.log(statFile)
-      var data = {
-        ipPort: ipPort,
-        stats: {
-          nbSuccess: 0,
-          nbErrors: 0,
-          lastResponseTime: 1
-        },
-        mutex: new Mutex()
-      }
-      if (oldFs.existsSync(statFile)) {
-        data.stats = JSON.parse(oldFs.readFileSync(statFile))
-      }
-      proxies.push(data)
-    }
-    proxies.sort((a,b) => {
-      return (b.nbSuccess - b.nbErrors)/b.lastResponseTime - (a.nbSuccess - a.nbErrors)/a.lastResponseTime
-    })
+    proxies = loadProxies()
     fetchBody.proxies = proxies
-    fetchBody.currentProxy = 0
     console.log(proxies.slice(0,20))
   }
 
-  const proxy = fetchBody.proxies[fetchBody.currentProxy % Math.min(fetchBody.proxies.length, nbParallelProxies)]
-  fetchBody.currentProxy += 1
+  const proxy = fetchBody.proxies[0]
+  proxy.nbFetch += 1
+  sortProxies(fetchBody.proxies)
 
   return proxy.mutex.acquire()
   .then(release => {
@@ -67,7 +40,6 @@ function fetchBody(uri) {
         return fetchBody(uri)
       } else */
       if (res.status == 200) {
-        setTimeout(release, 400)
         proxy.stats.nbSuccess += 1
         return res.text()
       } else {
@@ -77,16 +49,55 @@ function fetchBody(uri) {
     .catch(err => {
       proxy.stats.nbErrors += 1
       console.error(err)
-      release()
       return fetchBody(uri)
     })
     .finally(() => {
       fs.writeFile(proxyStats + filenamify(proxy.ipPort), JSON.stringify(proxy.stats))
-      fetchBody.proxies.sort((a,b) => {
-        return (b.nbSuccess - b.nbErrors)/b.lastResponseTime - (a.nbSuccess - a.nbErrors)/a.lastResponseTime
-      })
+      proxy.nbFetch -= 1
+      sortProxies(fetchBody.proxies)
+      setTimeout(release, 200)
     })
   })
+}
+
+function loadProxies() {
+  var proxies = []
+  for (var ipPort of oldFs.readFileSync('./http_proxies.txt', {encoding: 'utf8'}).split('\r\n')) {
+    if (! ipPort.match(/\d+\.\d+\.\d+\.\d+.*/)) {
+      continue
+    }
+    var statFile = proxyStats + filenamify(ipPort)
+    //console.log(statFile)
+    var data = {
+      ipPort: ipPort,
+      stats: {
+        nbSuccess: 0,
+        nbErrors: 0,
+        lastResponseTime: 1
+      },
+      mutex: new Mutex(),
+      nbFetch: 0
+    }
+    if (oldFs.existsSync(statFile)) {
+      data.stats = JSON.parse(oldFs.readFileSync(statFile))
+    }
+    proxies.push(data)
+  }
+  sortProxies(proxies)
+  return proxies
+}
+
+function sortProxies(proxies) {
+  proxies.sort((a,b) => {
+    return proxyScore(b) - proxyScore(a)
+  })
+  proxies.slice(0, nbParallelProxies).sort((a, b) => {
+    return a.nbFetch - b.nbFetch
+  })
+}
+
+function proxyScore(proxy) {
+  return (proxy.stats.nbSuccess*10000/proxy.stats.lastResponseTime) - proxy.stats.nbErrors
 }
 
 exports.fetchBodyWithCache = (uri, forceDownload) => {

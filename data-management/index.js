@@ -1,12 +1,35 @@
 var {extractSpecsFromBody} = require('./specExtraction')
 var {fetchBodyWithCache} = require('./httpCache')
 var {fetchPhoneList} = require('./prices')
-var {findAllSpecs} = require('./spec-finder')
+var {findAllSpecs} = require('./specFinder')
+var fs = require('fs').promises
 
 try {
   fetchPhoneList()
   .then(list => {
     findAllSpecs(list)
+    .then( phonesWithSearchResults => {
+      //console.log(phonesWithSearchResults)
+      var promises = []
+      for (const phone of phonesWithSearchResults) {
+        if (phone.searchResults.length > 0 && phone.searchResults[0].score > 0) {
+          promises.push(
+            fetchBodyWithCache('https://www.gsmarena.com/' + phone.searchResults[0].link)
+              .then(body => {
+                //console.log(phone.name)
+                try {
+                  phone['specs'] = extractSpecsFromBody(body)
+                } catch (err) {
+                  console.log('error extracting specs for ' + phone.name)
+                  console.log(err)
+                }
+              }))
+        }
+      }
+      Promise.all(promises).then(values => {
+        fs.writeFile('./allSpecs.json', JSON.stringify(phonesWithSearchResults, null, 2))
+      })
+    })
   })
 
 for (var uri of ['https://www.gsmarena.com/huawei_p40_pro+-10118.php',

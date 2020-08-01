@@ -64,17 +64,18 @@ function extractSpecsFromBody(body) {
         specs['maxClock'] = maxClock
         break
       case 'chipset':
-        specs['transistorSize'] = parseFloat(value.match(/([\d.]+) nm/)[1])
+        extractNumber(specs, 'transistorSize', value, /([\d.]+) nm/, 1)
         break
       case 'displayresolution':
         var match = value.match(/([\d]+) x ([\d]+) pix/)
-        specs['resolutionWidth'] = parseInt(match[1])
-        specs['resolutionHeight'] = parseInt(match[2])
-        match = value.match(/([\d.]+) ppi/)
-        specs['ppi'] = parseFloat(match[1])
+        if (match) {
+          specs['resolutionWidth'] = parseInt(match[1])
+          specs['resolutionHeight'] = parseInt(match[2])
+        }
+        extractNumber(specs, 'ppi', value, /([\d.]+) ppi/, 1)
         break
       case 'displayother':
-        specs['refreshRate'] = parseInt(value.match(/(\d+)Hz/)[1])
+        extractNumber(specs, 'refreshRate', value, /(\d+)Hz/, 1)
         break
       case 'cam1modules':
         specs['rearCameraModules'] = extractCameraSpecs(value)
@@ -86,7 +87,7 @@ function extractSpecsFromBody(body) {
         specs['usbC'] = value.includes('Type-C')
         break
       case 'batdescription1':
-        specs['batteryCapacity'] = parseInt(value.match(/(\d+) mAh/)[1])
+        extractNumber(specs, 'batteryCapacity', value, /(\d+) mAh/, 1)
         break
       case 'Charging':
         specs['maxChargingPower'] = parseInt(value.match(/(\d+)W/))
@@ -116,6 +117,13 @@ function extractSpecsFromBody(body) {
   }
 
   return specs
+}
+
+function extractNumber(obj, propertyName, value, pattern, index) {
+  var match = value.match(pattern)
+  if (match) {
+    obj[propertyName] = parseFloat(match[index])
+  }
 }
 
 function extractCameraSpecs(value) {
