@@ -24,6 +24,7 @@
     "async-mutex": "^0.2.4",
     "filenamify": "^4.1.0",
     "https-proxy-agent": "^5.0.0",
+    "moment": "^2.27.0",
     "node-fetch": "^2.6.0",
     "node-html-parser": "^1.2.20"
   },

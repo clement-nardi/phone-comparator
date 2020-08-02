@@ -3,6 +3,7 @@ var {fetchBodyWithCache} = require('./httpCache')
 var {fetchPhoneList} = require('./prices')
 var {findAllSpecs} = require('./specFinder')
 var fs = require('fs').promises
+var moment = require('moment')
 
 try {
   fetchPhoneList()
@@ -27,7 +28,7 @@ try {
         }
       }
       Promise.all(promises).then(values => {
-        fs.writeFile('./allSpecs.json', JSON.stringify(phonesWithSearchResults, null, 2))
+        fs.writeFile('./allSpecs.' + moment().format('YYYY-MM-DD-HH-mm-ss-SSS') + '.json', JSON.stringify(phonesWithSearchResults, null, 2))
       })
     })
   })
