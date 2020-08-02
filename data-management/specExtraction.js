@@ -34,10 +34,7 @@ function extractSpecsFromBody(body) {
         specs['thickness'] = parseFloat(match[3])
         break
       case 'build':
-        var front = value.match(/(.*) front/)[1]
-        if (front.match(/gorilla/i)) {
-          specs['gorillaGlassVersion'] = parseInt(front.match(/\d+/)[0])
-        }
+          extractNumber(specs, 'gorillaGlassVersion', value, /front \(Gorilla Glass ([\d.]+)/, 1)
         break
       case 'weight':
         specs['weight'] = parseFloat(value)

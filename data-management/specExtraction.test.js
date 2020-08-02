@@ -5,9 +5,9 @@ const testDataDir = './testData/'
 
 test('spec extraction from html', () => {
   for (var entry of fs.readdirSync(testDataDir)) {
-    if (entry.endsWith('.html')) {
-      var expectedFile = entry.replace('.html', '-expected.json')
-      var actualFile = entry.replace('.html', '-actual.json')
+    if (entry.endsWith('.html') || entry.endsWith('.php')) {
+      var expectedFile = entry.replace(/\.(html|php)/, '-expected.json')
+      var actualFile = entry.replace(/\.(html|php)/, '-actual.json')
       var body = fs.readFileSync(testDataDir + entry)
       var actualSpecs = extractSpecsFromBody(body)
       fs.writeFileSync(testDataDir + actualFile, JSON.stringify(actualSpecs, null, 2))
