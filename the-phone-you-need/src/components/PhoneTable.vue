@@ -2,12 +2,11 @@
   <div>
     <table>
       <tr>
-        <th>name</th>
-        <th v-for="k in this.$store.state.allKeys" :key="k">
-          <LabelWithTooltip :label="k" :tooltip="k"/>
+        <th v-for="(k, i) in this.$store.state.allKeys" :key="k">
+          <LabelWithTooltip :label="getHeader(i)" :tooltip="getHeaderTooltip(i)"/>
         </th>
       </tr>
-      <PhoneLine v-for="phone in this.$store.state.allSpecs" :key="phone.name" :phone="phone"/>
+      <PhoneLine v-for="(phone, index) in this.$store.state.allPhones" :key="phone.name" :phoneIdx="index"/>
     </table>
   </div>
 </template>
@@ -28,6 +27,12 @@ export default {
   computed: {
   },
   methods: {
+    getHeader(i) {
+      return this.$store.getters.getHeader(i)
+    },
+    getHeaderTooltip(i) {
+      return this.$store.getters.getHeaderTooltip(i)
+    }
   }
 }
 </script>

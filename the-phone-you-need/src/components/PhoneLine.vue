@@ -1,10 +1,8 @@
 <template>
   <tr>
-    <td>
-      <LabelWithTooltip :label="phone.name" :tooltip="phone.name"/>
-    </td>
     <td v-for="k in this.$store.state.allKeys" :key="k">
-      <LabelWithTooltip :label="getSpec(phone,k)" :tooltip="getTooltip(phone,k)" />
+      <LabelWithTooltip :label="getLabel(phoneIdx, k) + ''"
+                        :tooltip="getTooltip(phoneIdx, k) + ''" />
     </td>
   </tr>
 </template>
@@ -15,7 +13,7 @@ export default {
   name: 'PhoneLine',
   components: {LabelWithTooltip},
   props: {
-    phone: Object
+    phoneIdx: Number
   },
   data: function () {
     return {
@@ -24,28 +22,11 @@ export default {
   computed: {
   },
   methods: {
-    getSpec(phone, k) {
-      if (phone.specs && phone.specs[k]) {
-        var spec = phone.specs[k]
-        if (typeof spec === 'object') {
-          return 'link'
-        } else {
-          return this.safeToString(spec)
-        }
-      } else {
-        return ''
-      }
+    getLabel(phoneIdx, k) {
+      return this.$store.getters.getLabel(phoneIdx, k)
     },
-    getTooltip(phone, k) {
-      if (phone.specs && phone.specs[k]) {
-        var spec = phone.specs[k]
-        return this.safeToString(spec)
-      } else {
-        return ''
-      }
-    },
-    safeToString(any) {
-      return any + ''
+    getTooltip(phoneIdx, k) {
+      return this.$store.getters.getTooltip(phoneIdx, k)
     }
   }
 }

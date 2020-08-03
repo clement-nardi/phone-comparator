@@ -40,6 +40,7 @@ export default {
 
 <style>
 #tooltip {
+  visibility: hidden;
   background-color: black;
   color: #fff;
   text-align: center;

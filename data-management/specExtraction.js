@@ -22,13 +22,13 @@ function extractSpecsFromBody(body) {
         break
       case 'os':
         if (value.includes('Android')) {
-          specs['']
+          specs['os'] = 'Android'
           specs['androidVersion'] = parseFloat(value.replace('Android ',''))
+          specs['hasGoogleServices'] = !value.includes('no Google Play Services')
         }
-        specs['hasGoogleServices'] = !value.includes('no Google Play Services')
         break
       case 'dimensions':
-        var match = value.match(/(.*) x (.*) x (.*) mm/)
+        var match = [...value.matchAll(/([\d.]+) x (.*) x (.*) mm/g)].pop()
         specs['height'] = parseFloat(match[1])
         specs['width'] = parseFloat(match[2])
         specs['thickness'] = parseFloat(match[3])
