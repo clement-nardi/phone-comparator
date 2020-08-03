@@ -1,5 +1,5 @@
 <template>
-  <div :ref="label" class="label" @mouseover="showTooltip(label)">
+  <div ref="labelRef" class="label" @mouseover="showTooltip()">
     {{label}}
   </div>
 </template>
@@ -18,10 +18,10 @@ export default {
   computed: {
   },
   methods: {
-    showTooltip(label) {
-      const labelEl = this.$refs[label]
+    showTooltip() {
+      const labelEl = this.$refs['labelRef']
       var container = document.getElementById("tooltip");
-      if (labelEl.scrollWidth > labelEl.clientWidth) {
+      if (labelEl.scrollWidth > labelEl.clientWidth || this.label != this.tooltip) {
         container.innerText = this.tooltip
         container.style.visibility = 'visible'
 

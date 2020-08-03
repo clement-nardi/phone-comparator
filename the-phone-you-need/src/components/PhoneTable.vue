@@ -2,8 +2,10 @@
   <div>
     <table>
       <tr>
-        <th v-for="(k, i) in this.$store.state.allKeys" :key="k">
-          <LabelWithTooltip :label="getHeader(i)" :tooltip="getHeaderTooltip(i)"/>
+        <th v-for="k in this.$store.state.allKeys"
+            :key="k"
+            :style="'width: ' + getHeaderWidth(k)">
+          <LabelWithTooltip :label="getHeader(k)" :tooltip="getHeaderTooltip(k)"/>
         </th>
       </tr>
       <PhoneLine v-for="(phone, index) in this.$store.state.allPhones" :key="phone.name" :phoneIdx="index"/>
@@ -27,11 +29,14 @@ export default {
   computed: {
   },
   methods: {
-    getHeader(i) {
-      return this.$store.getters.getHeader(i)
+    getHeader(k) {
+      return this.$store.getters.getHeader(k)
     },
-    getHeaderTooltip(i) {
-      return this.$store.getters.getHeaderTooltip(i)
+    getHeaderWidth(k) {
+      return this.$store.getters.getHeaderWidth(k)
+    },
+    getHeaderTooltip(k) {
+      return this.$store.getters.getHeaderTooltip(k)
     }
   }
 }
