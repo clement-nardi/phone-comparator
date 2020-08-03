@@ -16,13 +16,9 @@ function getAllAttributes(allSpecs) {
 
 export default new Vuex.Store({
   state: {
-    count: 42,
-    allSpecs: allSpecs,
+    allSpecs: allSpecs.slice(0,20),
     allKeys: getAllAttributes(allSpecs)
   },
   mutations: {
-    increment (state) {
-      state.count++
-    }
   }
 })
