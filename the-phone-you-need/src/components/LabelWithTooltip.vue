@@ -1,5 +1,7 @@
 <template>
-  <div ref="labelRef" class="label" @mouseover="showTooltip()">
+  <div ref="labelRef" class="label"
+       @mouseover="showTooltip()"
+       :style="'background-color: ' + this.color">
     {{label}}
   </div>
 </template>
@@ -9,7 +11,8 @@ export default {
   name: 'LabelWithTooltip',
   props: {
     label: String,
-    tooltip: String
+    tooltip: String,
+    color: String
   },
   data: function () {
     return {
@@ -22,7 +25,7 @@ export default {
       const labelEl = this.$refs['labelRef']
       var container = document.getElementById("tooltip");
       if (labelEl.scrollWidth > labelEl.clientWidth || this.label != this.tooltip) {
-        container.innerText = this.tooltip
+        container.innerHTML = this.tooltip
         container.style.visibility = 'visible'
 
         const left = labelEl.getBoundingClientRect().left

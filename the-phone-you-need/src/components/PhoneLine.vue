@@ -2,7 +2,8 @@
   <tr>
     <td v-for="k in this.$store.state.allKeys" :key="k">
       <LabelWithTooltip :label="getLabel(phoneIdx, k) + ''"
-                        :tooltip="getTooltip(phoneIdx, k) + ''" />
+                        :tooltip="getTooltip(phoneIdx, k) + ''"
+                        :color="getColor(phoneIdx, k)" />
     </td>
   </tr>
 </template>
@@ -27,6 +28,9 @@ export default {
     },
     getTooltip(phoneIdx, k) {
       return this.$store.getters.getTooltip(phoneIdx, k)
+    },
+    getColor(phoneIdx, k) {
+      return this.$store.getters.getColor(phoneIdx, k)
     }
   }
 }

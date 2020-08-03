@@ -34,14 +34,20 @@ function getKeyProperties(allKeys) {
   var props = {}
   for (var key of allKeys) {
     var types = new Set()
+    var minValue = undefined
+    var maxValue = undefined
     for (var phone of allPhones) {
       var value = dotAccess(phone, key)
       var type = typeof value
       if (value === null) {type = 'null'}
       types.add(type)
+      if (minValue === undefined || value < minValue) {minValue = value}
+      if (maxValue === undefined || value > maxValue) {maxValue = value}
     }
     props[key] = {
-      types: types
+      types: types,
+      minValue: minValue,
+      maxValue: maxValue
     }
   }
   props['name']['width'] = '140px'
@@ -61,6 +67,11 @@ function getKeyProperties(allKeys) {
   }
   props['specs.height']['getLabel'] = Math.round
   props['specs.width']['getLabel'] = Math.round
+  for (var k of ['height', 'width', 'thickness', 'weight', 'transistorSize']) {
+    props['specs.' + k]['lowerIsBetter'] = true
+  }
+
+  console.log(props)
   return props
 }
 
@@ -109,6 +120,36 @@ export default new Vuex.Store({
     getTooltip: (state, getters) => (i, k) => {
       var rawData = getters.getValue(state.allPhones[i], k)
       return rawData
+    },
+    getColor: (state, getters) => (i, k) => {
+      var phone = state.allPhones[i]
+      var value = getters.getValue(phone, k)
+      var kprops = state.keyProperties[k]
+      var min = kprops.minValue
+      var max = kprops.maxValue
+      var rank = (value - min) / (max - min)
+      if (kprops.lowerIsBetter) {
+        rank = 1-rank
+      }
+      var colorMap = [{rank: 0, color: [255, 0, 0]},
+                      {rank: 0.5, color: [255, 180, 0]},
+                      {rank: 1, color: [0, 255, 60]} ]
+      var color = [255, 255, 255]
+      for (var j in colorMap) {
+        if (j == 0) {continue}
+        var r0 = colorMap[j-1].rank
+        var r1 = colorMap[j].rank
+        if (rank >= r0 && rank <= r1) {
+          var c0 = colorMap[j-1].color
+          var c1 = colorMap[j].color
+          for (var ci in color) {
+            var localRank = (rank - r0) / (r1 - r0)
+            color[ci] = c0[ci] + (c1[ci] - c0[ci]) * localRank
+          }
+        }
+      }
+      //console.log(min + ' - ' + value + ' - ' + max + ' - ' + rank)
+      return 'rgb(' + color.join() + ')'
     },
     getHeader: () => (k) => {
       return k.split('.').pop()
