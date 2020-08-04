@@ -30,8 +30,12 @@ export default {
 
         const left = labelEl.getBoundingClientRect().left
         const top = labelEl.getBoundingClientRect().top
-        //console.log(left)
-        container.style.left = (left+30) + 'px'
+        if (left > 800) {
+          container.style.left = (left-container.getBoundingClientRect().width-14) + 'px'
+        } else {
+          container.style.left = (left+labelEl.clientWidth) + 'px'
+          container.style.right = ''
+        }
         container.style.top = (top-20) + 'px'
       } else {
         container.style.visibility = 'hidden'
@@ -44,14 +48,17 @@ export default {
 <style>
 #tooltip {
   visibility: hidden;
-  background-color: black;
-  color: #fff;
+  background-color: white;
   text-align: center;
   border-radius: 6px;
+  border-color: black;
+  border-width: 1px;
+  border-style: solid;
   padding: 10px;
   margin: 10px;
   z-index: 1;
   position: fixed;
+  text-align: left;
 }
 </style>
 

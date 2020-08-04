@@ -37,7 +37,7 @@ function extractSpecsFromBody(body) {
           extractNumber(specs, 'gorillaGlassVersion', value, /front \(Gorilla Glass ([\d.]+)/, 1)
         break
       case 'weight':
-        specs['weight'] = parseFloat(value)
+        extractNumber(specs, 'weight', value, /([\d.]+)/, 1)
         break
       case 'bodyother':
         var match = value.match(/IP(\d+)/)
@@ -50,15 +50,18 @@ function extractSpecsFromBody(body) {
         specs['screenToBodyRatio'] = parseFloat(value.match(/([\d.]+%)/))
         break
       case 'cpu':
-        var coreGroups = [...value.matchAll(/(\d)x([\d.]+) GHz/g)]
-        var nbCores = 0
-        var maxClock = 0
-        for (var coreGroup of coreGroups) {
-          nbCores += parseInt(coreGroup[1])
-          maxClock = Math.max(maxClock,parseFloat(coreGroup[2]))
+        var cpuVersions = [...value.matchAll(/\([^)]*\)/g)]
+        if (cpuVersions.length > 0) {
+          var coreGroups = [...cpuVersions[0][0].matchAll(/(\d)x([\d.]+) GHz/g)]
+          var nbCores = 0
+          var maxClock = 0
+          for (var coreGroup of coreGroups) {
+            nbCores += parseInt(coreGroup[1])
+            maxClock = Math.max(maxClock,parseFloat(coreGroup[2]))
+          }
+          if (nbCores) {specs['nbCores'] = nbCores}
+          if (maxClock) {specs['maxClock'] = maxClock}
         }
-        specs['nbCores'] = nbCores
-        specs['maxClock'] = maxClock
         break
       case 'chipset':
         extractNumber(specs, 'transistorSize', value, /([\d.]+) nm/, 1)
@@ -87,7 +90,7 @@ function extractSpecsFromBody(body) {
         extractNumber(specs, 'batteryCapacity', value, /(\d+) mAh/, 1)
         break
       case 'Charging':
-        specs['maxChargingPower'] = parseInt(value.match(/(\d+)W/))
+        extractNumber(specs, 'maxChargingPower', value, /(\d+)W/, 1)
         specs['wirelessCharging'] = value.includes('wireless')
         break
       case 'batlife':

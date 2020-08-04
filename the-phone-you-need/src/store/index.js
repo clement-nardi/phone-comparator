@@ -71,7 +71,6 @@ function getKeyProperties(allKeys) {
     props['specs.' + k]['lowerIsBetter'] = true
   }
 
-  console.log(props)
   return props
 }
 
@@ -83,22 +82,68 @@ function getType(types) {
   }
 }
 
-const allKeys = ['brand', 'name', ...getAllSpecKeys(allPhones)]
+function getValue(phone, key, kprops) {
+  if (kprops.getValue) {
+    return kprops.getValue(phone)
+  } else {
+    return dotAccess(phone, key)
+  }
+}
+
+function getallKeys() {
+  const allSpecKeys = getAllSpecKeys(allPhones)
+  const allKeys = [
+    "brand",
+    "name",
+    "specs.height",
+    "specs.width",
+    "specs.thickness",
+    "specs.weight",
+    "specs.ipCertification",
+    "specs.hasOLED",
+    "specs.screenSize",
+    "specs.screenToBodyRatio",
+    "specs.resolutionWidth",
+    "specs.resolutionHeight",
+    "specs.ppi",
+    "specs.os",
+    "specs.androidVersion",
+    "specs.hasGoogleServices",
+    "specs.transistorSize",
+    "specs.nbCores",
+    "specs.maxClock",
+    "specs.memoryVersions",
+    "specs.rearCameraModules",
+    "specs.maxFPS",
+    "specs.frontCameraModules",
+    "specs.usbC",
+    "specs.batteryCapacity",
+    "specs.enduranceRating",
+    "specs.maxChargingPower",
+    "specs.wirelessCharging",
+    "specs.gorillaGlassVersion",
+    "specs.refreshRate"
+  ]
+  for (var key of allSpecKeys) {
+    if (!allKeys.includes(key)) {allKeys.push(key)}
+  }
+  return allKeys
+}
+
+const allKeys = getallKeys()
 
 export default new Vuex.Store({
   state: {
-    allPhones: allPhones.slice(0,20),
+    allPhones: allPhones.slice(0, 50),
     allKeys: allKeys,
-    keyProperties: getKeyProperties(allKeys)
+    keyProperties: getKeyProperties(allKeys),
+    sortKey: undefined,
+    sortAscending: false
   },
   getters: {
     getValue: state => (phone, k) => {
       var kprops = state.keyProperties[k]
-      if (kprops.getValue) {
-        return kprops.getValue(phone)
-      } else {
-        return dotAccess(phone, k)
-      }
+      return getValue(phone, k, kprops)
     },
     getLabel: (state, getters) => (i, k) => {
       var rawData = getters.getValue(state.allPhones[i], k)
@@ -127,28 +172,27 @@ export default new Vuex.Store({
       var kprops = state.keyProperties[k]
       var min = kprops.minValue
       var max = kprops.maxValue
-      var rank = (value - min) / (max - min)
+      var score = (value - min) / (max - min)
       if (kprops.lowerIsBetter) {
-        rank = 1-rank
+        score = 1-score
       }
-      var colorMap = [{rank: 0, color: [255, 0, 0]},
-                      {rank: 0.5, color: [255, 180, 0]},
-                      {rank: 1, color: [0, 255, 60]} ]
+      var colorMap = [{score: 0, color: [255, 0, 0]},
+                      {score: 0.5, color: [255, 180, 0]},
+                      {score: 1, color: [0, 255, 60]} ]
       var color = [255, 255, 255]
       for (var j in colorMap) {
         if (j == 0) {continue}
-        var r0 = colorMap[j-1].rank
-        var r1 = colorMap[j].rank
-        if (rank >= r0 && rank <= r1) {
+        var r0 = colorMap[j-1].score
+        var r1 = colorMap[j].score
+        if (score >= r0 && score <= r1) {
           var c0 = colorMap[j-1].color
           var c1 = colorMap[j].color
           for (var ci in color) {
-            var localRank = (rank - r0) / (r1 - r0)
-            color[ci] = c0[ci] + (c1[ci] - c0[ci]) * localRank
+            var localscore = (score - r0) / (r1 - r0)
+            color[ci] = c0[ci] + (c1[ci] - c0[ci]) * localscore
           }
         }
       }
-      //console.log(min + ' - ' + value + ' - ' + max + ' - ' + rank)
       return 'rgb(' + color.join() + ')'
     },
     getHeader: () => (k) => {
@@ -165,9 +209,40 @@ export default new Vuex.Store({
       }
     },
     getHeaderTooltip: (state, getters) => (k) => {
-      return getters.getHeader(k)
+      var kprops = state.keyProperties[k]
+      var tooltip = getters.getHeader(k) + '<br>' +
+             'type : ' + getType(kprops.types) + '<br>' +
+             'best : ' + (kprops.lowerIsBetter?kprops.minValue:kprops.maxValue) + '<br>' +
+             'worst: ' + (kprops.lowerIsBetter?kprops.maxValue:kprops.minValue)
+
+      return tooltip
     }
   },
   mutations: {
+    sortBy (state, key) {
+      if (state.sortKey == key) {
+        state.sortAscending = !state.sortAscending
+      } else {
+        state.sortKey = key
+        state.sortAscending = false
+      }
+      var kprops = state.keyProperties[key]
+      state.allPhones.sort((a,b) => {
+        var va = getValue(a, key, kprops)
+        var vb = getValue(b, key, kprops)
+        if (va == undefined) { va = 0 }
+        if (vb == undefined) { vb = 0 }
+        var coef = (kprops.lowerIsBetter?-1:1) * (state.sortAscending?-1:1)
+        var compare
+        switch (getType(kprops.types)) {
+          case 'string':
+            compare = va.localeCompare(vb)
+            break
+          default:
+            compare = (vb - va)
+        }
+        return compare * coef
+      })
+    }
   }
 })

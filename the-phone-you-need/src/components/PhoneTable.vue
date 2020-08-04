@@ -4,7 +4,8 @@
       <tr>
         <th v-for="k in this.$store.state.allKeys"
             :key="k"
-            :style="'width: ' + getHeaderWidth(k)">
+            :style="'width: ' + getHeaderWidth(k)"
+            @click="headerClicked(k)">
           <LabelWithTooltip :label="getHeader(k)" :tooltip="getHeaderTooltip(k)"/>
         </th>
       </tr>
@@ -37,6 +38,10 @@ export default {
     },
     getHeaderTooltip(k) {
       return this.$store.getters.getHeaderTooltip(k)
+    },
+    headerClicked(k) {
+      console.log(k)
+      this.$store.commit('sortBy', k)
     }
   }
 }
@@ -44,6 +49,13 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-table { table-layout: fixed; width: 100%; }
-th { white-space:nowrap; overflow: hidden; }
+table {
+  table-layout: fixed;
+  width: 100%;
+}
+th {
+  white-space:nowrap;
+  overflow: hidden;
+  text-align: left;
+}
 </style>
