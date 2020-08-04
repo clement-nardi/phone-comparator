@@ -2,16 +2,19 @@
   <div id="app">
     <div id="tooltip"/>
     <PhoneTable />
+    <ColumnConfig />
   </div>
 </template>
 
 <script>
 import PhoneTable from './components/PhoneTable.vue'
+import ColumnConfig from './components/ColumnConfig.vue'
 
 export default {
   name: 'App',
   components: {
-    PhoneTable
+    PhoneTable,
+    ColumnConfig
   }
 }
 </script>

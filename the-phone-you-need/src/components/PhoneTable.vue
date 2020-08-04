@@ -4,22 +4,20 @@
       <tr>
         <th v-for="k in this.$store.state.allKeys"
             :key="k"
-            :style="'width: ' + getHeaderWidth(k)"
-            @click="headerClicked(k)">
-          <LabelWithTooltip :label="getHeader(k)" :tooltip="getHeaderTooltip(k)"/>
+            :style="'width: ' + getHeaderWidth(k)">
+          <button @click="headerClicked(k,$event)">{{getHeader(k)}}</button>
         </th>
       </tr>
-      <PhoneLine v-for="(phone, index) in this.$store.state.allPhones" :key="phone.name" :phoneIdx="index"/>
+      <PhoneLine v-for="(phone, index) in this.$store.getters.getPhones()" :key="phone.name" :phoneIdx="index"/>
     </table>
   </div>
 </template>
 
 <script>
 import PhoneLine from './PhoneLine'
-import LabelWithTooltip from './LabelWithTooltip'
 export default {
   name: 'PhoneTable',
-  components: {PhoneLine, LabelWithTooltip},
+  components: {PhoneLine},
   props: {
     msg: String
   },
@@ -39,9 +37,8 @@ export default {
     getHeaderTooltip(k) {
       return this.$store.getters.getHeaderTooltip(k)
     },
-    headerClicked(k) {
-      console.log(k)
-      this.$store.commit('sortBy', k)
+    headerClicked(k, event) {
+      this.$store.commit('setConfigKey', {key: k, pos: event.clientX} )
     }
   }
 }

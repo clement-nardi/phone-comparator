@@ -1,8 +1,8 @@
 <template>
   <div ref="labelRef" class="label"
        @mouseover="showTooltip()"
-       :style="'background-color: ' + this.color">
-    {{label}}
+       :style="'background-color: ' + this.color"
+       v-html="label">
   </div>
 </template>
 

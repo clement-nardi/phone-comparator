@@ -21,7 +21,7 @@ function extractPhoneListFromBody(body) {
       var match = laText.match(/(.*) \((\d+) ref\.\)/)
       var name = match[1]
       var nbOffers = parseInt(match[2])
-      var price = parseFloat(prText.substring(0,prText.length - 2).replace(/ /g, '').replace(/,/g, '.'))
+      var price = parseFloat(prText.substring(0,prText.length - 2).replace(/\s/g, '').replace(/,/g, '.'))
       var link = la.querySelector('a').getAttribute('href')
       phoneList.push({name: name, price: price, nbOffers: nbOffers, link: link})
     }

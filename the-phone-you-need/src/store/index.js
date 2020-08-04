@@ -55,9 +55,13 @@ function getKeyProperties(allKeys) {
     var name = phone['name'].split(' ').slice(1).join(' ')
     return name
   }
-  props['name']['getLabel'] = (value) => {
+  props['name']['getLabel'] = (phone) => {
+    var value = props['name']['getValue'](phone)
     var match = value.match(/SM-.\d\d\d - (.*)/)
-    if (match) {return match[1]}
+    if (match) {value = match[1]}
+    if (phone.searchResults && phone.searchResults.length > 0) {
+      value = '<a target="_blank" href=https://www.gsmarena.com/' + phone.searchResults[0].link + '>' + value + '</a>'
+    }
     return value
   }
   props['specs.os']['width'] = '20px'
@@ -65,11 +69,20 @@ function getKeyProperties(allKeys) {
     getValue: (phone) => phone['name'].split(' ')[0],
     types: ['string']
   }
-  props['specs.height']['getLabel'] = Math.round
-  props['specs.width']['getLabel'] = Math.round
+  props['specs.height']['adaptValue'] = Math.round
+  props['specs.width']['adaptValue'] = Math.round
   for (var k of ['height', 'width', 'thickness', 'weight', 'transistorSize']) {
     props['specs.' + k]['lowerIsBetter'] = true
   }
+
+  props['price']['getLabel'] = (phone) => {
+    var value = Math.round(phone.price) + '€'
+    if (phone.link ) {
+      value = '<a target="_blank" href=https://www.i-comparateur.com/' + phone.link + '>' + value + '</a>'
+    }
+    return value
+  }
+  props['price']['lowerIsBetter'] = true
 
   return props
 }
@@ -92,37 +105,39 @@ function getValue(phone, key, kprops) {
 
 function getallKeys() {
   const allSpecKeys = getAllSpecKeys(allPhones)
+  /* This array determines the columns order */
   const allKeys = [
     "brand",
     "name",
+    "price",
     "specs.height",
     "specs.width",
     "specs.thickness",
     "specs.weight",
     "specs.ipCertification",
-    "specs.hasOLED",
+    "specs.gorillaGlassVersion",
     "specs.screenSize",
     "specs.screenToBodyRatio",
+    "specs.hasOLED",
     "specs.resolutionWidth",
     "specs.resolutionHeight",
     "specs.ppi",
+    "specs.refreshRate",
     "specs.os",
     "specs.androidVersion",
     "specs.hasGoogleServices",
-    "specs.transistorSize",
     "specs.nbCores",
     "specs.maxClock",
+    "specs.transistorSize",
     "specs.memoryVersions",
     "specs.rearCameraModules",
     "specs.maxFPS",
     "specs.frontCameraModules",
-    "specs.usbC",
     "specs.batteryCapacity",
     "specs.enduranceRating",
     "specs.maxChargingPower",
     "specs.wirelessCharging",
-    "specs.gorillaGlassVersion",
-    "specs.refreshRate"
+    "specs.usbC",
   ]
   for (var key of allSpecKeys) {
     if (!allKeys.includes(key)) {allKeys.push(key)}
@@ -134,27 +149,35 @@ const allKeys = getallKeys()
 
 export default new Vuex.Store({
   state: {
-    allPhones: allPhones.slice(0, 50),
+    allPhones: allPhones,
+    nbVisiblePhones: 100,
     allKeys: allKeys,
     keyProperties: getKeyProperties(allKeys),
-    sortKey: undefined,
-    sortAscending: false
+    configKey: null,
+    configPos: 0
   },
   getters: {
+    getPhones: state => () => {
+      return state.allPhones.slice(0,state.nbVisiblePhones)
+    },
     getValue: state => (phone, k) => {
       var kprops = state.keyProperties[k]
       return getValue(phone, k, kprops)
     },
     getLabel: (state, getters) => (i, k) => {
-      var rawData = getters.getValue(state.allPhones[i], k)
+      var phone = state.allPhones[i]
+      var rawData = getters.getValue(phone, k)
       var kprops = state.keyProperties[k]
       if (rawData !== undefined && rawData !== null) {
+        if (kprops['getLabel']) {
+          return kprops['getLabel'](phone)
+        }
         switch (getType(state.keyProperties[k].types)) {
           case 'boolean':
             return rawData?'Y':'N'
           default:
-            if (kprops['getLabel']) {
-              return kprops['getLabel'](rawData)
+            if (kprops['adaptValue']) {
+              return kprops['adaptValue'](rawData)
             }
             return rawData
         }
@@ -196,7 +219,8 @@ export default new Vuex.Store({
       return 'rgb(' + color.join() + ')'
     },
     getHeader: () => (k) => {
-      return k.split('.').pop()
+      var spec = k.split('.').pop()
+      return spec[0].toUpperCase() + spec.slice(1)
     },
     getHeaderWidth: (state) => (k) => {
       var kprops = state.keyProperties[k]
@@ -219,20 +243,20 @@ export default new Vuex.Store({
     }
   },
   mutations: {
-    sortBy (state, key) {
-      if (state.sortKey == key) {
-        state.sortAscending = !state.sortAscending
-      } else {
-        state.sortKey = key
-        state.sortAscending = false
-      }
+    sortBy (state, payload) {
+      var key = payload.key
+      var bestFirst = payload.bestFirst
       var kprops = state.keyProperties[key]
+      var coef = (kprops.lowerIsBetter?-1:1) * (bestFirst?1:-1)
+      /* this way, empty values are shown at the top when requesting "see worst first" */
+      //var defaultValue = kprops.lowerIsBetter?(kprops.maxValue + 1):(kprops.minValue - 1)
+      /* Empty values always at the bottom */
+      var defaultValue = (coef==-1)?(kprops.maxValue + 1):(kprops.minValue - 1)
       state.allPhones.sort((a,b) => {
         var va = getValue(a, key, kprops)
         var vb = getValue(b, key, kprops)
-        if (va == undefined) { va = 0 }
-        if (vb == undefined) { vb = 0 }
-        var coef = (kprops.lowerIsBetter?-1:1) * (state.sortAscending?-1:1)
+        if (va == undefined) { va = defaultValue }
+        if (vb == undefined) { vb = defaultValue }
         var compare
         switch (getType(kprops.types)) {
           case 'string':
@@ -243,6 +267,10 @@ export default new Vuex.Store({
         }
         return compare * coef
       })
+    },
+    setConfigKey (state, p) {
+      state.configKey = p.key
+      state.configPos = p.pos
     }
   }
 })
