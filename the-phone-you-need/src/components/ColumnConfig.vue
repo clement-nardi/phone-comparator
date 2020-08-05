@@ -1,5 +1,5 @@
 <template>
-  <div id="column-config" v-if="key" :style="style">
+  <div id="column-config" v-if="key" :style="style" v-click-outside="hide">
     <strong>
       {{columnLabel}}
     </strong>
@@ -41,8 +41,16 @@ export default {
   methods: {
     sort(bestFirst) {
       this.$store.commit("sortBy", { key: this.key, bestFirst: bestFirst })
-      this.$store.commit("setConfigKey", { key: null, pos: 0})
+      this.hide()
     },
+    hide() {
+      this.$store.commit("setConfigKey", { key: null, pos: 0})
+    }
+  },
+  events: {
+    clickOutside: function() {
+      this.hide()
+    }
   }
 }
 </script>

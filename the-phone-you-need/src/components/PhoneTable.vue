@@ -38,6 +38,7 @@ export default {
       return this.$store.getters.getHeaderTooltip(k)
     },
     headerClicked(k, event) {
+      event.stopPropagation()
       this.$store.commit('setConfigKey', {key: k, pos: event.clientX} )
     }
   }
