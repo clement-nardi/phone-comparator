@@ -102,6 +102,13 @@ function extractSpecsFromBody(body) {
         for (var version of memoryVersions) {
           specs['memoryVersions'].push({'RAM': version[2], 'storage': version[1]})
         }
+        specs['memoryVersions'].sort((a,b)=>{
+          if (a.RAM != b.RAM) {
+            return a.RAM - b.RAM
+          } else {
+            return a.storage - b.storage
+          }
+        })
         break
       case 'cam1video':
         var maxFps = 0

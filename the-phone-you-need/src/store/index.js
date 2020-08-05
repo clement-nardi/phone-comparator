@@ -32,23 +32,8 @@ function keyListAccess(obj, list) {
 
 function getKeyProperties(allKeys) {
   var props = {}
-  for (var key of allKeys) {
-    var types = new Set()
-    var minValue = undefined
-    var maxValue = undefined
-    for (var phone of allPhones) {
-      var value = dotAccess(phone, key)
-      var type = typeof value
-      if (value === null) {type = 'null'}
-      types.add(type)
-      if (minValue === undefined || value < minValue) {minValue = value}
-      if (maxValue === undefined || value > maxValue) {maxValue = value}
-    }
-    props[key] = {
-      types: types,
-      minValue: minValue,
-      maxValue: maxValue
-    }
+  for (var v of allKeys) {
+    props[v] = {}
   }
   props['name']['width'] = '140px'
   props['name']['getValue'] = (phone) => {
@@ -83,6 +68,47 @@ function getKeyProperties(allKeys) {
     return value
   }
   props['price']['lowerIsBetter'] = true
+
+  props['specs.memoryVersions']['getLabel'] = phone => {
+    var mems = phone.specs.memoryVersions
+    var label = ''
+    for (var mem of mems) {
+      label += mem.RAM + '/' + mem.storage + 'G '
+    }
+    return label
+  }
+
+  props['RAM min']['getValue'] = (phone) => {
+    if (phone.specs && phone.specs.memoryVersions && phone.specs.memoryVersions.length>0) {
+      return Math.min(...((phone.specs.memoryVersions).map(m => m.RAM)))
+    } else {
+      return undefined
+    }
+  }
+  props['Storage min']['getValue'] = (phone) => {
+    if (phone.specs && phone.specs.memoryVersions && phone.specs.memoryVersions.length>0) {
+      return Math.min(...((phone.specs.memoryVersions).map(m => m.storage)))
+    } else {
+      return undefined
+    }
+  }
+
+  for (var key of allKeys) {
+    var types = new Set()
+    var minValue = undefined
+    var maxValue = undefined
+    for (var phone of allPhones) {
+      var value = getValue(phone, key, props[key])
+      var type = typeof value
+      if (value === null) {type = 'null'}
+      types.add(type)
+      if (minValue === undefined || value < minValue) {minValue = value}
+      if (maxValue === undefined || value > maxValue) {maxValue = value}
+    }
+    props[key].types = types
+    props[key].minValue = minValue
+    props[key].maxValue = maxValue
+  }
 
   return props
 }
@@ -130,6 +156,8 @@ function getallKeys() {
     "specs.maxClock",
     "specs.transistorSize",
     "specs.memoryVersions",
+    "RAM min",
+    "Storage min",
     "specs.rearCameraModules",
     "specs.maxFPS",
     "specs.frontCameraModules",
@@ -175,6 +203,8 @@ export default new Vuex.Store({
         switch (getType(state.keyProperties[k].types)) {
           case 'boolean':
             return rawData?'Y':'N'
+          case 'object':
+            return JSON.stringify(rawData)
           default:
             if (kprops['adaptValue']) {
               return kprops['adaptValue'](rawData)
@@ -187,7 +217,10 @@ export default new Vuex.Store({
     },
     getTooltip: (state, getters) => (i, k) => {
       var rawData = getters.getValue(state.allPhones[i], k)
-      return rawData
+      if (typeof rawData == 'object') {
+        rawData = JSON.stringify(rawData, null, 2).replace(/\n/g, '<br>')
+      }
+      return getters.getHeader(k) + ': ' + rawData
     },
     getColor: (state, getters) => (i, k) => {
       var phone = state.allPhones[i]
