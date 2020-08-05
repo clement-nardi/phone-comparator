@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "nouislider": "^14.6.0",
     "vue": "^2.6.11",
     "vuex": "^3.5.1"
   },

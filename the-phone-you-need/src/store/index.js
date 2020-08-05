@@ -93,24 +93,55 @@ function getKeyProperties(allKeys) {
     }
   }
 
-  for (var key of allKeys) {
-    var types = new Set()
-    var minValue = undefined
-    var maxValue = undefined
-    for (var phone of allPhones) {
-      var value = getValue(phone, key, props[key])
-      var type = typeof value
-      if (value === null) {type = 'null'}
-      types.add(type)
-      if (minValue === undefined || value < minValue) {minValue = value}
-      if (maxValue === undefined || value > maxValue) {maxValue = value}
-    }
-    props[key].types = types
-    props[key].minValue = minValue
-    props[key].maxValue = maxValue
+  for (let key of allKeys) {
+    analysePropValues(props, key)
   }
 
+  props['Score']['getValue'] = (phone) => {
+    let phoneScore = 0
+    for (let key of allKeys) {
+      if (key == 'Score' || key == 'Score/Price ratio') {continue}
+      let kprops = props[key]
+      let type = getType(kprops.types)
+      if (type == 'number' || type == 'boolean') {
+        let keyScore = getScore(phone, key, props[key])
+        if (typeof keyScore == 'number') {
+          if (isNaN(keyScore)) {
+            console.log(key)
+          }
+          phoneScore += keyScore * 10
+        }
+      }
+    }
+    return phoneScore
+  }
+
+  props['Score/Price ratio']['getValue'] = phone => {
+    return props['Score']['getValue'](phone) / phone.price
+  }
+
+  analysePropValues(props, 'Score')
+  analysePropValues(props, 'Score/Price ratio')
+
   return props
+}
+
+function analysePropValues(props, key) {
+  var types = new Set()
+  var minValue = undefined
+  var maxValue = undefined
+  for (var phone of allPhones) {
+    var value = getValue(phone, key, props[key])
+    var type = typeof value
+    if (value === null) {type = 'null'}
+    types.add(type)
+    if (value == null || value == undefined) {continue}
+    if (minValue === undefined || value < minValue) {minValue = value}
+    if (maxValue === undefined || value > maxValue) {maxValue = value}
+  }
+  props[key].types = types
+  props[key].minValue = minValue
+  props[key].maxValue = maxValue
 }
 
 function getType(types) {
@@ -119,6 +150,7 @@ function getType(types) {
       return type
     }
   }
+  return undefined
 }
 
 function getValue(phone, key, kprops) {
@@ -136,6 +168,8 @@ function getallKeys() {
     "brand",
     "name",
     "price",
+    "Score",
+    "Score/Price ratio",
     "specs.height",
     "specs.width",
     "specs.thickness",
@@ -171,6 +205,23 @@ function getallKeys() {
     if (!allKeys.includes(key)) {allKeys.push(key)}
   }
   return allKeys
+}
+
+function getScore(phone, k, kprops) {
+  let value = getValue(phone, k, kprops)
+  const min = kprops.minValue
+  const max = kprops.maxValue
+  if (! (max-min) ||value == undefined) {
+    return undefined
+  }
+  let score = (value - min) / (max - min)
+  if (kprops.lowerIsBetter) {
+    score = 1-score
+  }
+  if (isNaN(score)) {
+    console.log(k + ' - ' + value + ' - ' + min + ' - ' + max)
+  }
+  return score
 }
 
 const allKeys = getallKeys()
@@ -222,29 +273,23 @@ export default new Vuex.Store({
       }
       return getters.getHeader(k) + ': ' + rawData
     },
-    getColor: (state, getters) => (i, k) => {
-      var phone = state.allPhones[i]
-      var value = getters.getValue(phone, k)
-      var kprops = state.keyProperties[k]
-      var min = kprops.minValue
-      var max = kprops.maxValue
-      var score = (value - min) / (max - min)
-      if (kprops.lowerIsBetter) {
-        score = 1-score
-      }
-      var colorMap = [{score: 0, color: [255, 0, 0]},
+    getColor: (state) => (i, k) => {
+      let phone = state.allPhones[i]
+      let kprops = state.keyProperties[k]
+      let score = getScore(phone, k, kprops)
+      let colorMap = [{score: 0, color: [255, 0, 0]},
                       {score: 0.5, color: [255, 180, 0]},
                       {score: 1, color: [0, 255, 60]} ]
-      var color = [255, 255, 255]
-      for (var j in colorMap) {
+      let color = [255, 255, 255]
+      for (let j in colorMap) {
         if (j == 0) {continue}
-        var r0 = colorMap[j-1].score
-        var r1 = colorMap[j].score
+        let r0 = colorMap[j-1].score
+        let r1 = colorMap[j].score
         if (score >= r0 && score <= r1) {
-          var c0 = colorMap[j-1].color
-          var c1 = colorMap[j].color
-          for (var ci in color) {
-            var localscore = (score - r0) / (r1 - r0)
+          let c0 = colorMap[j-1].color
+          let c1 = colorMap[j].color
+          for (let ci in color) {
+            let localscore = (score - r0) / (r1 - r0)
             color[ci] = c0[ci] + (c1[ci] - c0[ci]) * localscore
           }
         }
@@ -252,6 +297,7 @@ export default new Vuex.Store({
       return 'rgb(' + color.join() + ')'
     },
     getHeader: () => (k) => {
+      if (!k) {return undefined}
       var spec = k.split('.').pop()
       return spec[0].toUpperCase() + spec.slice(1)
     },

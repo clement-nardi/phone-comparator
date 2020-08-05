@@ -5,7 +5,9 @@
         <th v-for="k in this.$store.state.allKeys"
             :key="k"
             :style="'width: ' + getHeaderWidth(k)">
-          <button @click="headerClicked(k,$event)">{{getHeader(k)}}</button>
+          <button @click="headerClicked(k,$event)">
+            <LabelWithTooltip :label="getHeader(k) + ''" :tooltip="getHeaderTooltip(k) + ''" />
+          </button>
         </th>
       </tr>
       <PhoneLine v-for="(phone, index) in this.$store.getters.getPhones()" :key="phone.name" :phoneIdx="index"/>
@@ -14,10 +16,11 @@
 </template>
 
 <script>
+import LabelWithTooltip from './LabelWithTooltip'
 import PhoneLine from './PhoneLine'
 export default {
   name: 'PhoneTable',
-  components: {PhoneLine},
+  components: {PhoneLine, LabelWithTooltip},
   props: {
     msg: String
   },
