@@ -12,7 +12,7 @@
     </span>
     <div>
       Filter values:
-      <div ref="filterSlider" id="filterSlider"> </div>
+      <div v-once ref="filterSlider" id="filterSlider"> </div>
       <div>
         <div style="float:left;">
           {{this.min}}
@@ -22,8 +22,6 @@
         </div>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -51,7 +49,7 @@ export default {
         previousKey = k
         console.log('key changed')
         if (k) {
-          const filterSlider = this.$refs['filterSlider'];
+          const filterSlider = document.getElementById('filterSlider');
           const kprops = this.$store.state.keyProperties[k]
           let min = kprops.minValue
           let max = kprops.maxValue
@@ -106,16 +104,18 @@ export default {
   },
   mounted: function () {
     const filterSlider = this.$refs['filterSlider'];
-    noUiSlider.create(filterSlider, {
-        start: [20, 80],
-        connect: true,
-        range: {
-            'min': 0,
-            'max': 100
+    if (filterSlider) {
+      noUiSlider.create(filterSlider, {
+          start: [20, 80],
+          connect: true,
+          range: {
+              'min': 0,
+              'max': 100
+          }
         }
-      }
-    );
-    filterSlider.noUiSlider.on('update', this.updateFilter);
+      );
+      filterSlider.noUiSlider.on('update', this.updateFilter);
+    }
   }
 }
 </script>
