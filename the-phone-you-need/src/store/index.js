@@ -33,7 +33,7 @@ function keyListAccess(obj, list) {
 function getKeyProperties(allKeys) {
   var props = {}
   for (var v of allKeys) {
-    props[v] = {}
+    props[v] = {filters: {keepEmpty: true}}
   }
   props['name']['width'] = '140px'
   props['name']['getValue'] = (phone) => {
@@ -50,10 +50,10 @@ function getKeyProperties(allKeys) {
     return value
   }
   props['specs.os']['width'] = '20px'
-  props['brand'] = {
-    getValue: (phone) => phone['name'].split(' ')[0],
-    types: ['string']
-  }
+
+  props['brand']['getValue'] = (phone) => phone['name'].split(' ')[0],
+  props['brand']['types'] = ['string']
+
   props['specs.height']['adaptValue'] = Math.round
   props['specs.width']['adaptValue'] = Math.round
   for (var k of ['height', 'width', 'thickness', 'weight', 'transistorSize']) {
@@ -228,8 +228,18 @@ function getFilters(keyProperties) {
   let filters = {}
   for (let k in keyProperties) {
     let p = keyProperties[k]
-    if (p.filters) {
-      filters[k] = p.filters
+    filters[k] = {}
+    if (p.filters['min'] && p.filters['min'] != p.minValue) {
+      filters[k].min = p.filters['min']
+    }
+    if (p.filters['max'] && p.filters['max'] != p.maxValue) {
+      filters[k].max = p.filters['min']
+    }
+    if (p.filters['keepEmpty'] == false) {
+      filters[k].keepEmpty = false
+    }
+    if (Object.keys(filters[k]).length === 0) {
+      delete filters[k]
     }
   }
   return filters
@@ -238,6 +248,7 @@ function getFilters(keyProperties) {
 function getFilteredPhones(phones, keyProperties) {
   let filteredPhones = []
   let filters = getFilters(keyProperties)
+  console.log(filters)
   for (let phone of phones) {
     let isFilteredOut = false
     for (let k in filters) {
@@ -252,6 +263,11 @@ function getFilteredPhones(phones, keyProperties) {
             break
           case 'max':
             if (v > fv) {
+              isFilteredOut = true
+            }
+            break
+          case 'keepEmpty':
+            if (!fv && (v == undefined || v == null)) {
               isFilteredOut = true
             }
             break
@@ -390,7 +406,12 @@ export default new Vuex.Store({
              'worst: ' + (kprops.lowerIsBetter?kprops.maxValue:kprops.minValue)
 
       return tooltip
-    }
+    },
+
+    getKeepEmpty: (state) => (k) => {
+      if (!k) {return false}
+      return state.keyProperties[k].filters['keepEmpty']
+    },
   },
   mutations: {
     sortBy (state, payload) {
@@ -409,9 +430,6 @@ export default new Vuex.Store({
       let key = p.key
       let filterType = p.filterType
       let filterValue = p.filterValue
-      if (! state.keyProperties[key].filters) {
-        state.keyProperties[key].filters = {}
-      }
       state.keyProperties[key].filters[filterType] = filterValue
       let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
       sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])

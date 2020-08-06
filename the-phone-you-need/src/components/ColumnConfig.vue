@@ -21,6 +21,8 @@
           {{this.max}}
         </div>
       </div>
+      <br>
+      <span>Keep empty: </span><input type="checkbox" v-model="keepEmpty"/>
     </div>
   </div>
 </template>
@@ -43,6 +45,19 @@ export default {
     }
   },
   computed: {
+    keepEmpty: {
+      // getter
+      get: function () {
+        let k = this.$store.state.configKey
+        let v = this.$store.getters.getKeepEmpty(k)
+        return v
+      },
+      // setter
+      set: function (newValue) {
+        let k = this.$store.state.configKey
+        this.$store.commit('applyFilter', {key: k, filterType: 'keepEmpty', filterValue: newValue})
+      }
+    },
     key() {
       let k = this.$store.state.configKey
       if (currentKey != k) {
