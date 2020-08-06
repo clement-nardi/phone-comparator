@@ -69,8 +69,9 @@ function extractSpecsFromBody(body) {
       case 'displayresolution':
         var match = value.match(/([\d]+) x ([\d]+) pix/)
         if (match) {
-          specs['resolutionWidth'] = parseInt(match[1])
-          specs['resolutionHeight'] = parseInt(match[2])
+          let res = [parseInt(match[1]),parseInt(match[2])]
+          specs['resolutionWidth'] = Math.min(...res)
+          specs['resolutionHeight'] = Math.max(...res)
         }
         extractNumber(specs, 'ppi', value, /([\d.]+) ppi/, 1)
         break

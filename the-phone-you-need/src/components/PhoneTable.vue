@@ -10,7 +10,7 @@
           </button>
         </th>
       </tr>
-      <PhoneLine v-for="(phone, index) in this.$store.getters.getPhones()" :key="phone.name" :phoneIdx="index"/>
+      <PhoneLine v-for="phone in this.$store.getters.getPhones()" :key="phone.name" :phone="phone"/>
     </table>
   </div>
 </template>

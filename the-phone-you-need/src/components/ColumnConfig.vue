@@ -29,7 +29,7 @@
 //import LabelWithTooltip from './LabelWithTooltip'
 import noUiSlider from 'nouislider';
 import 'nouislider/distribute/nouislider.css';
-var previousKey = undefined
+var currentKey = undefined
 
 export default {
   name: 'ColumnConfig',
@@ -45,16 +45,13 @@ export default {
   computed: {
     key() {
       let k = this.$store.state.configKey
-      if (previousKey != k) {
-        previousKey = k
-        console.log('key changed')
+      if (currentKey != k) {
+        currentKey = k
         if (k) {
           const filterSlider = document.getElementById('filterSlider');
           const kprops = this.$store.state.keyProperties[k]
           let min = kprops.minValue
           let max = kprops.maxValue
-          console.log(min)
-          console.log(max)
           if (typeof max == 'number') {
             filterSlider.noUiSlider.updateOptions( {
                 start: [min, max],
@@ -81,20 +78,25 @@ export default {
   },
   methods: {
     sort(bestFirst) {
-      console.log('sort')
       this.$store.commit("sortBy", { key: this.key, bestFirst: bestFirst })
       this.hide()
     },
     hide() {
-      console.log('hide')
       this.$store.commit("setConfigKey", { key: null, pos: 0})
     },
-    updateFilter(values, handle) {
+    updateMinMax(values, handle) {
       if (handle == 0) {
         this.min = values[handle]
       } else {
         this.max = values[handle]
       }
+    },
+    applyFilter(values, handle) {
+      this.$store.commit('applyFilter', {
+        key: currentKey,
+        filterType: (handle==0)?'min':'max',
+        filterValue: parseFloat(values[handle])
+      })
     }
   },
   events: {
@@ -114,7 +116,8 @@ export default {
           }
         }
       );
-      filterSlider.noUiSlider.on('update', this.updateFilter);
+      filterSlider.noUiSlider.on('update', this.updateMinMax);
+      filterSlider.noUiSlider.on('change', this.applyFilter);
     }
   }
 }

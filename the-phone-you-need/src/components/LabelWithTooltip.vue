@@ -36,7 +36,7 @@ export default {
           container.style.left = (left+labelEl.clientWidth) + 'px'
           container.style.right = ''
         }
-        container.style.top = (top-20) + 'px'
+        container.style.top = Math.max(top-20, 30) + 'px'
       } else {
         container.style.visibility = 'hidden'
       }

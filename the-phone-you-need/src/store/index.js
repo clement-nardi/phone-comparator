@@ -224,27 +224,99 @@ function getScore(phone, k, kprops) {
   return score
 }
 
-const allKeys = getallKeys()
+function getFilters(keyProperties) {
+  let filters = {}
+  for (let k in keyProperties) {
+    let p = keyProperties[k]
+    if (p.filters) {
+      filters[k] = p.filters
+    }
+  }
+  return filters
+}
+
+function getFilteredPhones(phones, keyProperties) {
+  let filteredPhones = []
+  let filters = getFilters(keyProperties)
+  for (let phone of phones) {
+    let isFilteredOut = false
+    for (let k in filters) {
+      for (let fk in filters[k]) {
+        let v = getValue(phone, k, keyProperties[k])
+        let fv = filters[k][fk]
+        switch (fk) {
+          case 'min':
+            if (v < fv) {
+              isFilteredOut = true
+            }
+            break
+          case 'max':
+            if (v > fv) {
+              isFilteredOut = true
+            }
+            break
+        }
+        if (isFilteredOut) {break}
+      }
+      if (isFilteredOut) {break}
+    }
+    if (!isFilteredOut) {
+      filteredPhones.push(phone)
+    }
+  }
+  return filteredPhones
+}
+
+function sortBy(phones, key, bestFirst, kprops) {
+  var coef = (kprops.lowerIsBetter?-1:1) * (bestFirst?1:-1)
+  /* this way, empty values are shown at the top when requesting "see worst first" */
+  //var defaultValue = kprops.lowerIsBetter?(kprops.maxValue + 1):(kprops.minValue - 1)
+  /* Empty values always at the bottom */
+  var defaultValue = (coef==-1)?(kprops.maxValue + 1):(kprops.minValue - 1)
+  phones.sort((a,b) => {
+    var va = getValue(a, key, kprops)
+    var vb = getValue(b, key, kprops)
+    if (va == undefined) { va = defaultValue }
+    if (vb == undefined) { vb = defaultValue }
+    var compare
+    switch (getType(kprops.types)) {
+      case 'string':
+        compare = va.localeCompare(vb)
+        break
+      default:
+        compare = (vb - va)
+    }
+    return compare * coef
+  })
+
+}
+
+var allKeys = getallKeys()
+var keyProperties = getKeyProperties(allKeys)
+var filteredPhones = getFilteredPhones(allPhones, keyProperties)
+sortBy(filteredPhones, 'Score', true, keyProperties['Score'])
 
 export default new Vuex.Store({
   state: {
     allPhones: allPhones,
+    keyProperties: keyProperties,
+    filteredPhones: filteredPhones,
     nbVisiblePhones: 100,
     allKeys: allKeys,
-    keyProperties: getKeyProperties(allKeys),
     configKey: null,
-    configPos: 0
+    configPos: 0,
+    sortKey: 'Score',
+    sortBestFirst: true
   },
   getters: {
     getPhones: state => () => {
-      return state.allPhones.slice(0,state.nbVisiblePhones)
+      return state.filteredPhones.slice(0,state.nbVisiblePhones)
     },
     getValue: state => (phone, k) => {
       var kprops = state.keyProperties[k]
       return getValue(phone, k, kprops)
     },
-    getLabel: (state, getters) => (i, k) => {
-      var phone = state.allPhones[i]
+    getLabel: (state, getters) => (phone, k) => {
       var rawData = getters.getValue(phone, k)
       var kprops = state.keyProperties[k]
       if (rawData !== undefined && rawData !== null) {
@@ -266,15 +338,14 @@ export default new Vuex.Store({
         return ''
       }
     },
-    getTooltip: (state, getters) => (i, k) => {
-      var rawData = getters.getValue(state.allPhones[i], k)
+    getTooltip: (state, getters) => (phone, k) => {
+      var rawData = getters.getValue(phone, k)
       if (typeof rawData == 'object') {
         rawData = JSON.stringify(rawData, null, 2).replace(/\n/g, '<br>')
       }
       return getters.getHeader(k) + ': ' + rawData
     },
-    getColor: (state) => (i, k) => {
-      let phone = state.allPhones[i]
+    getColor: (state) => (phone, k) => {
       let kprops = state.keyProperties[k]
       let score = getScore(phone, k, kprops)
       let colorMap = [{score: 0, color: [255, 0, 0]},
@@ -325,31 +396,27 @@ export default new Vuex.Store({
     sortBy (state, payload) {
       var key = payload.key
       var bestFirst = payload.bestFirst
+      state.sortKey = key
+      state.sortBestFirst = bestFirst
       var kprops = state.keyProperties[key]
-      var coef = (kprops.lowerIsBetter?-1:1) * (bestFirst?1:-1)
-      /* this way, empty values are shown at the top when requesting "see worst first" */
-      //var defaultValue = kprops.lowerIsBetter?(kprops.maxValue + 1):(kprops.minValue - 1)
-      /* Empty values always at the bottom */
-      var defaultValue = (coef==-1)?(kprops.maxValue + 1):(kprops.minValue - 1)
-      state.allPhones.sort((a,b) => {
-        var va = getValue(a, key, kprops)
-        var vb = getValue(b, key, kprops)
-        if (va == undefined) { va = defaultValue }
-        if (vb == undefined) { vb = defaultValue }
-        var compare
-        switch (getType(kprops.types)) {
-          case 'string':
-            compare = va.localeCompare(vb)
-            break
-          default:
-            compare = (vb - va)
-        }
-        return compare * coef
-      })
+      sortBy(state.filteredPhones, key, bestFirst, kprops)
     },
     setConfigKey (state, p) {
       state.configKey = p.key
       state.configPos = p.pos
+    },
+    applyFilter (state, p) {
+      let key = p.key
+      let filterType = p.filterType
+      let filterValue = p.filterValue
+      if (! state.keyProperties[key].filters) {
+        state.keyProperties[key].filters = {}
+      }
+      state.keyProperties[key].filters[filterType] = filterValue
+      let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
+      sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])
+      Vue.set(state, 'filteredPhones', filteredPhones)
+      console.log(state.filteredPhones.length + '/' + state.allPhones.length)
     }
   }
 })

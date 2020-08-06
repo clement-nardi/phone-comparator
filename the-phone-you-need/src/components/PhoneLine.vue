@@ -1,9 +1,9 @@
 <template>
   <tr>
     <td v-for="k in this.$store.state.allKeys" :key="k">
-      <LabelWithTooltip :label="getLabel(phoneIdx, k) + ''"
-                        :tooltip="getTooltip(phoneIdx, k) + ''"
-                        :color="getColor(phoneIdx, k)" />
+      <LabelWithTooltip :label="getLabel(phone, k) + ''"
+                        :tooltip="getTooltip(phone, k) + ''"
+                        :color="getColor(phone, k)" />
     </td>
   </tr>
 </template>
@@ -14,7 +14,7 @@ export default {
   name: 'PhoneLine',
   components: {LabelWithTooltip},
   props: {
-    phoneIdx: Number
+    phone: Object
   },
   data: function () {
     return {
@@ -23,14 +23,14 @@ export default {
   computed: {
   },
   methods: {
-    getLabel(phoneIdx, k) {
-      return this.$store.getters.getLabel(phoneIdx, k)
+    getLabel(phone, k) {
+      return this.$store.getters.getLabel(phone, k)
     },
-    getTooltip(phoneIdx, k) {
-      return this.$store.getters.getTooltip(phoneIdx, k)
+    getTooltip(phone, k) {
+      return this.$store.getters.getTooltip(phone, k)
     },
-    getColor(phoneIdx, k) {
-      return this.$store.getters.getColor(phoneIdx, k)
+    getColor(phone, k) {
+      return this.$store.getters.getColor(phone, k)
     }
   }
 }
