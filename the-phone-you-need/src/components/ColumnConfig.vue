@@ -67,7 +67,8 @@ export default {
           const kprops = this.$store.state.keyProperties[k]
           let min = kprops.minValue
           let max = kprops.maxValue
-          if (typeof max == 'number') {
+          let showSlider = (typeof max == 'number')
+          if (showSlider) {
             filterSlider.noUiSlider.updateOptions( {
                 start: [min, max],
                 connect: true,
@@ -78,6 +79,7 @@ export default {
               }
             )
           }
+          filterSlider.style.visibility = showSlider?'visible':'hidden'
         }
       }
       return k

@@ -127,11 +127,13 @@ function getKeyProperties(allKeys) {
 }
 
 function analysePropValues(props, key) {
-  var types = new Set()
-  var minValue = undefined
-  var maxValue = undefined
+  let types = new Set()
+  let minValue = undefined
+  let maxValue = undefined
+  let values = new Set()
   for (var phone of allPhones) {
     var value = getValue(phone, key, props[key])
+    values.add(value)
     var type = typeof value
     if (value === null) {type = 'null'}
     types.add(type)
@@ -142,6 +144,7 @@ function analysePropValues(props, key) {
   props[key].types = types
   props[key].minValue = minValue
   props[key].maxValue = maxValue
+  props[key].values = [...values].sort()
 }
 
 function getType(types) {
