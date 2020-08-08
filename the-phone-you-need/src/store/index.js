@@ -346,7 +346,8 @@ export default new Vuex.Store({
     configKey: null,
     configPos: 0,
     sortKey: 'Score',
-    sortBestFirst: true
+    sortBestFirst: true,
+    darktheme: true
   },
   getters: {
     getPhones: state => () => {
@@ -388,10 +389,11 @@ export default new Vuex.Store({
     getColor: (state) => (phone, k) => {
       let kprops = state.keyProperties[k]
       let score = getScore(phone, k, kprops)
-      let colorMap = [{score: 0, color: [255, 0, 0]},
-                      {score: 0.5, color: [255, 180, 0]},
-                      {score: 1, color: [0, 255, 60]} ]
-      let color = [255, 255, 255]
+      if (score == undefined) {return 'inherit'}
+      let colorMap = [{score: 0, color: [180, 0, 0]},
+                      {score: 0.5, color: [120, 120, 0]},
+                      {score: 1, color: [0, 180, 60]} ]
+      let color = [0,0,0]
       for (let j in colorMap) {
         if (j == 0) {continue}
         let r0 = colorMap[j-1].score
@@ -401,7 +403,7 @@ export default new Vuex.Store({
           let c1 = colorMap[j].color
           for (let ci in color) {
             let localscore = (score - r0) / (r1 - r0)
-            color[ci] = c0[ci] + (c1[ci] - c0[ci]) * localscore
+            color[ci] = c0[ci] + (c1[ci] - c0[ci]) * localscore + ((state.darktheme)?0:60)
           }
         }
       }

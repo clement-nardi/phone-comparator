@@ -6,7 +6,7 @@
             :key="k"
             :style="'width: ' + getHeaderWidth(k)">
           <button @click="headerClicked(k,$event)">
-            <LabelWithTooltip :label="getHeader(k) + ''" :tooltip="getHeaderTooltip(k) + ''" />
+            <LabelWithTooltip :label="getHeader(k) + ''" :tooltip="getHeaderTooltip(k) + ''" :below="true" />
           </button>
         </th>
       </tr>

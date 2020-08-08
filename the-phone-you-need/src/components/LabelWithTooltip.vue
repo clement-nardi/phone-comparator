@@ -12,7 +12,8 @@ export default {
   props: {
     label: String,
     tooltip: String,
-    color: String
+    color: String,
+    below: Boolean
   },
   data: function () {
     return {
@@ -31,12 +32,12 @@ export default {
         const left = labelEl.getBoundingClientRect().left
         const top = labelEl.getBoundingClientRect().top
         if (left > 800) {
-          container.style.left = (left-container.getBoundingClientRect().width-14) + 'px'
+          container.style.left = (left-(this.below?90:(container.getBoundingClientRect().width))-20) + 'px'
         } else {
-          container.style.left = (left+labelEl.clientWidth) + 'px'
+          container.style.left = (left+(this.below?0:labelEl.clientWidth)) + 'px'
           container.style.right = ''
         }
-        container.style.top = Math.max(top-20, 30) + 'px'
+        container.style.top = top-(this.below?-20:20) + 'px'
       } else {
         container.style.visibility = 'hidden'
       }
@@ -59,6 +60,11 @@ export default {
   z-index: 1;
   position: fixed;
   text-align: left;
+}
+
+.darktheme #tooltip {
+  border-color: yellow;
+  background-color: dimgray;
 }
 </style>
 
