@@ -69,6 +69,7 @@ function getKeyProperties(allKeys) {
   }
   props['price']['lowerIsBetter'] = true
 
+  /*
   props['specs.memoryVersions']['getLabel'] = phone => {
     var mems = phone.specs.memoryVersions
     var label = ''
@@ -76,7 +77,7 @@ function getKeyProperties(allKeys) {
       label += mem.RAM + '/' + mem.storage + 'G '
     }
     return label
-  }
+  }*/
 
   props['RAM min']['getValue'] = (phone) => {
     if (phone.specs && phone.specs.memoryVersions && phone.specs.memoryVersions.length>0) {
@@ -91,6 +92,114 @@ function getKeyProperties(allKeys) {
     } else {
       return undefined
     }
+  }
+
+
+  /* Camera Properties */
+
+  let modules = ['main', 'tele', 'wide', 'selfie']
+  let camSpecs = [
+    'MP',
+    'FocalLength',
+    'OpticalZoom',
+    'MaxAperture',
+    'SensorSize',
+    'PixelSize',
+    'HasOIS',
+    'HasPhaseDetection',
+    'HasOmniPhaseDetection'
+  ]
+
+  function getModule(mod, phone) {
+    if (!phone.specs) {return undefined}
+    if (mod == 'selfie') {
+      if (!phone.specs.frontCameraModules || phone.specs.frontCameraModules.length == 0) {return undefined}
+      return phone.specs.frontCameraModules[0]
+    }
+    if (!phone.specs.rearCameraModules || phone.specs.rearCameraModules.length == 0) {return undefined}
+    if (mod == 'main') {
+      return phone.specs.rearCameraModules[0]
+    }
+    if (phone.specs.rearCameraModules.length == 1) {return undefined}
+    let cam = undefined
+    for (let pm of phone.specs.rearCameraModules.slice(1)) {
+      let mfl = 24
+      let fl = undefined
+      switch (mod) {
+        case 'tele':
+          if (phone.specs.rearCameraModules[0].focalLength) {mfl = phone.specs.rearCameraModules[0].focalLength}
+          if (pm.focalLength) {
+            fl = pm.focalLength
+          } else if (pm.opticalZoom) {
+            fl = mfl * pm.opticalZoom
+          }
+          if (!fl) {continue}
+          if (fl > mfl) {
+            if (cam == undefined || fl > cam.focalLength) {
+              cam = pm
+            }
+          }
+          break
+        case 'wide':
+          if (pm.focalLength < phone.specs.rearCameraModules[0].focalLength) {
+            if (cam == undefined || pm.focalLength < cam.focalLength) {
+              cam = pm
+            }
+          }
+          break
+      }
+    }
+    return cam
+
+  }
+
+  for (let mod of modules) {
+    for (let spec of camSpecs) {
+      let k = mod + 'Camera' + spec
+      if (!allKeys.includes(k)) {
+        continue
+      }
+      if (spec == 'MaxAperture') {
+        props[k]['lowerIsBetter'] = true
+      }
+      props[k]['getValue'] = (phone) => {
+        let pm = getModule(mod, phone)
+        if (!pm) {
+          return undefined
+        }
+        switch (spec) {
+          case 'MP':
+            return pm.megapixels
+          case 'FocalLength':
+            return pm.focalLength
+          case 'OpticalZoom':
+            return pm.opticalZoom
+          case 'MaxAperture':
+            return pm.maxAperture
+          case 'SensorSize':
+            return pm.sensorSize
+          case 'PixelSize':
+            return pm.pixelSize
+          case 'HasOIS':
+            return pm.OIS
+          case 'HasPhaseDetection':
+            if (!pm.autofocus) {return false}
+            return pm.autofocus.includes('PD')
+          case 'HasOmniPhaseDetection':
+            if (!pm.autofocus) {return false}
+            return pm.autofocus.includes('omni')
+        }
+      }
+    }
+  }
+
+  props['nbRearCameraModules']['getValue'] = (phone) => {
+    if (!phone.specs || !phone.specs.rearCameraModules) {return 0}
+    return phone.specs.rearCameraModules.length
+  }
+  props['nbFrontCameraModules']['getValue'] = (phone) => {
+    if (!phone.specs || !phone.specs.frontCameraModules) {return 0}
+    return phone.specs.frontCameraModules.length
   }
 
   for (let key of allKeys) {
@@ -212,12 +321,44 @@ function getallKeys() {
     "specs.nbCores",
     "specs.maxClock",
     "specs.transistorSize",
-    "specs.memoryVersions",
     "RAM min",
     "Storage min",
-    "specs.rearCameraModules",
+    "nbRearCameraModules",
+    "mainCameraMP",
+    "mainCameraFocalLength",
+    "mainCameraMaxAperture",
+    "mainCameraSensorSize",
+    "mainCameraPixelSize",
+    "mainCameraHasOIS",
+    "mainCameraHasPhaseDetection",
+    "mainCameraHasOmniPhaseDetection",
+    "teleCameraMP",
+    "teleCameraFocalLength",
+    "teleCameraOpticalZoom",
+    "teleCameraMaxAperture",
+    "teleCameraSensorSize",
+    "teleCameraPixelSize",
+    "teleCameraHasOIS",
+    "teleCameraHasPhaseDetection",
+    "teleCameraHasOmniPhaseDetection",
+    "wideCameraMP",
+    "wideCameraFocalLength",
+    "wideCameraMaxAperture",
+    "wideCameraSensorSize",
+    "wideCameraPixelSize",
+    "wideCameraHasOIS",
+    "wideCameraHasPhaseDetection",
+    "wideCameraHasOmniPhaseDetection",
+    "nbFrontCameraModules",
+    "selfieCameraMP",
+    "selfieCameraFocalLength",
+    "selfieCameraMaxAperture",
+    "selfieCameraSensorSize",
+    "selfieCameraPixelSize",
+    "selfieCameraHasOIS",
+    "selfieCameraHasPhaseDetection",
+    "selfieCameraHasOmniPhaseDetection",
     "specs.maxFPS",
-    "specs.frontCameraModules",
     "specs.batteryCapacity",
     "specs.enduranceRating",
     "specs.maxChargingPower",
@@ -225,7 +366,9 @@ function getallKeys() {
     "specs.usbC",
   ]
   for (var key of allSpecKeys) {
-    if (!allKeys.includes(key)) {allKeys.push(key)}
+    if (!allKeys.includes(key) && !["specs.memoryVersions", "specs.rearCameraModules", "specs.frontCameraModules"].includes(key)) {
+      allKeys.push(key)
+    }
   }
   return allKeys
 }
