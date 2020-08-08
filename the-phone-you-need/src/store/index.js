@@ -144,7 +144,27 @@ function analysePropValues(props, key) {
   props[key].types = types
   props[key].minValue = minValue
   props[key].maxValue = maxValue
+  props[key].minFilteredValue = minValue
+  props[key].maxFilteredValue = maxValue
   props[key].values = [...values].sort()
+}
+
+function analyseFilteredProps (phones, props) {
+  let keys = Object.keys(props).filter(k => (!k.startsWith('Score')))
+  keys.push('Score')
+  keys.push('Score/Price ratio')
+  for (let key of keys) {
+    let minValue = undefined
+    let maxValue = undefined
+    for (var phone of phones) {
+      var value = getValue(phone, key, props[key])
+      if (value == null || value == undefined) {continue}
+      if (minValue === undefined || value < minValue) {minValue = value}
+      if (maxValue === undefined || value > maxValue) {maxValue = value}
+    }
+    props[key].minFilteredValue = minValue
+    props[key].maxFilteredValue = maxValue
+  }
 }
 
 function getType(types) {
@@ -212,8 +232,8 @@ function getallKeys() {
 
 function getScore(phone, k, kprops) {
   let value = getValue(phone, k, kprops)
-  const min = kprops.minValue
-  const max = kprops.maxValue
+  const min = kprops.minFilteredValue
+  const max = kprops.maxFilteredValue
   if (! (max-min) ||value == undefined) {
     return undefined
   }
@@ -236,7 +256,7 @@ function getFilters(keyProperties) {
       filters[k].min = p.filters['min']
     }
     if (p.filters['max'] && p.filters['max'] != p.maxValue) {
-      filters[k].max = p.filters['min']
+      filters[k].max = p.filters['max']
     }
     if (p.filters['keepEmpty'] == false) {
       filters[k].keepEmpty = false
@@ -283,6 +303,7 @@ function getFilteredPhones(phones, keyProperties) {
       filteredPhones.push(phone)
     }
   }
+  analyseFilteredProps(filteredPhones, keyProperties)
   return filteredPhones
 }
 

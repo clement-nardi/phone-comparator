@@ -1,16 +1,17 @@
 <template>
   <div id="column-config" :style="style" v-click-outside="hide">
-    <strong>
-      {{columnLabel}}
-    </strong>
-    <br>
-    <span>
+    <div>
+      <strong>
+        {{columnLabel}}
+      </strong>
+    </div>
+    <div>
       Sort:
       <button @click="sort(true)">See best first</button>
       -
       <button @click="sort(false)">See worst first</button>
-    </span>
-    <div>
+    </div>
+    <div ref="numberFilter">
       Filter values:
       <div v-once ref="filterSlider" id="filterSlider"> </div>
       <div>
@@ -46,13 +47,11 @@ export default {
   },
   computed: {
     keepEmpty: {
-      // getter
       get: function () {
         let k = this.$store.state.configKey
         let v = this.$store.getters.getKeepEmpty(k)
         return v
       },
-      // setter
       set: function (newValue) {
         let k = this.$store.state.configKey
         this.$store.commit('applyFilter', {key: k, filterType: 'keepEmpty', filterValue: newValue})
@@ -63,23 +62,44 @@ export default {
       if (currentKey != k) {
         currentKey = k
         if (k) {
-          const filterSlider = document.getElementById('filterSlider');
           const kprops = this.$store.state.keyProperties[k]
           let min = kprops.minValue
           let max = kprops.maxValue
-          let showSlider = (typeof max == 'number')
-          if (showSlider) {
+          const filterSlider = document.getElementById('filterSlider');
+          const showSlider = (typeof max == 'number') && filterSlider && min != max
+          if (showSlider ) {
+            let range = {
+                'min': min,
+                'max': max
+            }
+            let snap = false
+            if (kprops.values.length < 50) {
+              for (let val of kprops.values) {
+                if (val == undefined || val == null || val == min || val == max) {continue}
+                let percent = (val-min)/(max-min)*100
+                range[percent + '%'] = val
+              }
+              snap = true
+            } 
+            let start = [min, max]
+            if (kprops.filters['min']) {
+              start[0] = kprops.filters['min']
+            }
+            if (kprops.filters['max']) {
+              start[1] = kprops.filters['max']
+            }
             filterSlider.noUiSlider.updateOptions( {
-                start: [min, max],
+                start: start,
                 connect: true,
-                range: {
-                    'min': min,
-                    'max': max
-                }
+                snap: snap,
+                range: range
               }
             )
           }
-          filterSlider.style.visibility = showSlider?'visible':'hidden'
+          const numberFilter = this.$refs['numberFilter']
+          if (numberFilter) {
+            numberFilter.style.display = showSlider?'contents':'none'
+          }
         }
       }
       return k
@@ -89,7 +109,7 @@ export default {
     },
     style() {
       var pos = this.$store.state.configPos
-      return 'left:' + Math.min(pos, window.innerWidth - 300) + 'px;' +
+      return 'left:' + Math.min(pos, window.innerWidth - 360) + 'px;' +
        "visibility:" + (this.key?'visible':'hidden')
     }
   },
@@ -103,12 +123,14 @@ export default {
     },
     updateMinMax(values, handle) {
       if (handle == 0) {
-        this.min = values[handle]
+        this.min = parseFloat(values[handle])
       } else {
-        this.max = values[handle]
+        this.max = parseFloat(values[handle])
       }
     },
     applyFilter(values, handle) {
+      console.log(values)
+        console.log(handle)
       this.$store.commit('applyFilter', {
         key: currentKey,
         filterType: (handle==0)?'min':'max',
