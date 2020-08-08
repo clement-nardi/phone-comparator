@@ -11,8 +11,13 @@
           </button>
         </th>
       </tr>
-      <PhoneLine v-for="(phone, index) in this.$store.getters.getPhones()" :key="phone.name" :phone="phone" :index="index"/>
+      <PhoneLine v-for="(phone, index) in this.$store.getters.getPhones()" :key="phone.name" :phone="phone" :index="index" />
     </table>
+      Show:
+    <span v-for="(nb, i) in nbLinesList" :key="nb">
+      <a @click="show(nb)">{{nb}}</a>
+      <span v-if="i<nbLinesList.length-1"> - </span>
+    </span>
   </div>
 </template>
 
@@ -30,6 +35,18 @@ export default {
     }
   },
   computed: {
+    nbLinesList() {
+      let nbLinesList = []
+      let step = 100
+      let i = step
+      let max = this.$store.state.filteredPhones.length
+      while (i < max) {
+        nbLinesList.push(i)
+        i += step
+      }
+      nbLinesList.push(max)
+      return nbLinesList
+    }
   },
   methods: {
     getHeader(k) {
@@ -55,6 +72,9 @@ export default {
         color = 'green'
       }
       return 'background-color: ' + color + ';'
+    },
+    show(nb) {
+      this.$store.commit('setNbVisiblePhones', nb)
     }
   }
 }
@@ -65,6 +85,7 @@ export default {
 table {
   table-layout: fixed;
   width: 100%;
+  border-collapse: collapse;
 }
 th {
   white-space:nowrap;
@@ -76,5 +97,9 @@ th {
   border-radius: 2px;
   border-width: 1px;
   border-style: solid;
+}
+a {
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

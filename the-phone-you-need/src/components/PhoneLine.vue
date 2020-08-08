@@ -1,6 +1,6 @@
 <template>
-  <tr>
-    <td>{{index}}</td>
+  <tr :class="{ highlighted: highlighted }" @click="highlight()">
+    <td>{{index+1}}</td>
     <td v-for="k in this.$store.state.allKeys" :key="k">
       <LabelWithTooltip :label="getLabel(phone, k) + ''"
                         :tooltip="getTooltip(phone, k) + ''"
@@ -20,6 +20,7 @@ export default {
   },
   data: function () {
     return {
+      highlighted: false
     }
   },
   computed: {
@@ -33,6 +34,9 @@ export default {
     },
     getColor(phone, k) {
       return this.$store.getters.getColor(phone, k)
+    },
+    highlight() {
+      this.highlighted = !this.highlighted
     }
   }
 }
@@ -42,4 +46,13 @@ export default {
 <style scoped>
 
 td { white-space:nowrap; overflow: hidden; }
+
+.highlighted {
+  border: solid thin;
+  border-width: 2px;
+  border-color: blue;
+}
+.darktheme .highlighted {
+  border-color: yellow;
+}
 </style>

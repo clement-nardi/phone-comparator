@@ -594,7 +594,13 @@ export default new Vuex.Store({
     getHeader: () => (k) => {
       if (!k) {return undefined}
       var spec = k.split('.').pop()
-      return spec[0].toUpperCase() + spec.slice(1)
+      return (spec[0].toUpperCase() + spec.slice(1))
+        .replace(/[a-z][A-Z]/g, match => (match[0] + ' ' + match[1]))
+        .replace('Nb ', 'Number of ')
+        .replace('Ip ', 'IP ')
+        .replace(/^Os$/, 'OS')
+        .replace(' MP', ' MegaPixels')
+
     },
     getHeaderWidth: (state) => (k) => {
       var kprops = state.keyProperties[k]
@@ -653,6 +659,9 @@ export default new Vuex.Store({
       let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
       sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])
       Vue.set(state, 'filteredPhones', filteredPhones)
+    },
+    setNbVisiblePhones (state, nb) {
+      state.nbVisiblePhones = nb
     }
   }
 })
