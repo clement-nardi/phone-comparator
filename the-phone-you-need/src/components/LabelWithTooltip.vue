@@ -50,7 +50,6 @@ export default {
 #tooltip {
   visibility: hidden;
   background-color: white;
-  text-align: center;
   border-radius: 6px;
   border-color: black;
   border-width: 1px;

@@ -1,5 +1,6 @@
 <template>
   <tr>
+    <td>{{index}}</td>
     <td v-for="k in this.$store.state.allKeys" :key="k">
       <LabelWithTooltip :label="getLabel(phone, k) + ''"
                         :tooltip="getTooltip(phone, k) + ''"
@@ -14,7 +15,8 @@ export default {
   name: 'PhoneLine',
   components: {LabelWithTooltip},
   props: {
-    phone: Object
+    phone: Object,
+    index: Number
   },
   data: function () {
     return {

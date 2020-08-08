@@ -108,9 +108,9 @@ export default {
       return this.$store.getters.getHeader(this.key)
     },
     style() {
-      var pos = Math.max(0,this.$store.state.configPos - 150)
+      var pos = Math.max(0,this.$store.state.configPosX - 150)
       pos = Math.min(pos, window.innerWidth - 360)
-      return 'left:' + pos + 'px;' +
+      return 'left:' + pos + 'px;' + 'top:' + (this.$store.state.configPosY+12) + 'px;' + 
        "visibility:" + (this.key?'visible':'hidden')
     }
   },
@@ -177,7 +177,6 @@ export default {
   z-index: 1;
   position: fixed;
   text-align: left;
-  top: 70px;
   width: 300px;
 }
 .darktheme #column-config {

@@ -30,12 +30,12 @@ function keyListAccess(obj, list) {
   }
 }
 
-function getKeyProperties(allKeys) {
+function getKeyProperties() {
   var props = {}
   for (var v of allKeys) {
     props[v] = {filters: {keepEmpty: true}}
   }
-  props['name']['width'] = '140px'
+  props['name']['width'] = '100px'
   props['name']['getValue'] = (phone) => {
     var name = phone['name'].split(' ').slice(1).join(' ')
     return name
@@ -49,7 +49,6 @@ function getKeyProperties(allKeys) {
     }
     return value
   }
-  props['specs.os']['width'] = '20px'
 
   props['brand']['getValue'] = (phone) => phone['name'].split(' ')[0],
   props['brand']['types'] = ['string']
@@ -202,8 +201,47 @@ function getKeyProperties(allKeys) {
     return phone.specs.frontCameraModules.length
   }
 
+
+  /* Small columns: 1 figure */
+  let smallColumns = ['specs.gorillaGlassVersion', 'specs.os', 'specs.nbCores', 'nbRearCameraModules', 'teleCameraOpticalZoom', 'nbFrontCameraModules']
+  for (let key of smallColumns) {
+    props[key].width = '8px'
+  }
+  /* 2 figures */
+  let mediumColumns = [
+    'specs.width',
+    'specs.ipCertification',
+    'specs.androidVersion',
+    'specs.transistorSize',
+    'RAM min',
+    'mainCameraFocalLength',
+    'teleCameraMP',
+    'wideCameraMP',
+    'wideCameraFocalLength',
+    'selfieCameraMP',
+    'selfieCameraFocalLength',
+    'specs.maxChargingPower'
+  ]
+  for (let key of mediumColumns) {
+    props[key].width = '16px'
+  }
+  /* 2 figures and a '.' */
+  let mediumColumns2 = ['specs.thickness', 'mainCameraMaxAperture', 'teleCameraMaxAperture', 'wideCameraMaxAperture', 'selfieCameraMaxAperture']
+  for (let key of mediumColumns2) {
+    props[key].width = '19px'
+  }
+
   for (let key of allKeys) {
     analysePropValues(props, key)
+  }
+
+  /* remove meaningless columns */
+  for (let key of allKeys.filter(v => !v.startsWith('Score'))) {
+    if (props[key].values.filter(v => v).length == 0) {
+      console.log('only 1 possible value: removing ' + key)
+      delete props[key]
+      allKeys = allKeys.filter(v => v!=key)
+    }
   }
 
   props['Score']['getValue'] = (phone) => {
@@ -231,6 +269,14 @@ function getKeyProperties(allKeys) {
 
   analysePropValues(props, 'Score')
   analysePropValues(props, 'Score/Price ratio')
+
+
+  /* set default filters here */
+
+  props['RAM min'].filters.keepEmpty = false
+  props['RAM min'].filters.min = 4
+
+
 
   return props
 }
@@ -391,21 +437,17 @@ function getScore(phone, k, kprops) {
 }
 
 function getFilters(keyProperties) {
-  let filters = {}
+  let filters = []
   for (let k in keyProperties) {
     let p = keyProperties[k]
-    filters[k] = {}
     if (p.filters['min'] && p.filters['min'] != p.minValue) {
-      filters[k].min = p.filters['min']
+      filters.push({key:k,type:'min',value:p.filters['min']})
     }
     if (p.filters['max'] && p.filters['max'] != p.maxValue) {
-      filters[k].max = p.filters['max']
+      filters.push({key:k,type:'max',value:p.filters['max']})
     }
     if (p.filters['keepEmpty'] == false) {
-      filters[k].keepEmpty = false
-    }
-    if (Object.keys(filters[k]).length === 0) {
-      delete filters[k]
+      filters.push({key:k,type:'keepEmpty',value:false})
     }
   }
   return filters
@@ -417,28 +459,25 @@ function getFilteredPhones(phones, keyProperties) {
   console.log(filters)
   for (let phone of phones) {
     let isFilteredOut = false
-    for (let k in filters) {
-      for (let fk in filters[k]) {
-        let v = getValue(phone, k, keyProperties[k])
-        let fv = filters[k][fk]
-        switch (fk) {
-          case 'min':
-            if (v < fv) {
-              isFilteredOut = true
-            }
-            break
-          case 'max':
-            if (v > fv) {
-              isFilteredOut = true
-            }
-            break
-          case 'keepEmpty':
-            if (!fv && (v == undefined || v == null)) {
-              isFilteredOut = true
-            }
-            break
-        }
-        if (isFilteredOut) {break}
+    for (let filter of filters) {
+      let v = getValue(phone, filter.key, keyProperties[filter.key])
+      let fv = filter.value
+      switch (filter.type) {
+        case 'min':
+          if (v < fv) {
+            isFilteredOut = true
+          }
+          break
+        case 'max':
+          if (v > fv) {
+            isFilteredOut = true
+          }
+          break
+        case 'keepEmpty':
+          if (!fv && (v == undefined || v == null)) {
+            isFilteredOut = true
+          }
+          break
       }
       if (isFilteredOut) {break}
     }
@@ -475,7 +514,7 @@ function sortBy(phones, key, bestFirst, kprops) {
 }
 
 var allKeys = getallKeys()
-var keyProperties = getKeyProperties(allKeys)
+var keyProperties = getKeyProperties()
 var filteredPhones = getFilteredPhones(allPhones, keyProperties)
 sortBy(filteredPhones, 'Score', true, keyProperties['Score'])
 
@@ -570,17 +609,20 @@ export default new Vuex.Store({
     getHeaderTooltip: (state, getters) => (k) => {
       var kprops = state.keyProperties[k]
       var tooltip = getters.getHeader(k) + '<br>' +
-             'type : ' + getType(kprops.types) + '<br>' +
-             'best : ' + (kprops.lowerIsBetter?kprops.minValue:kprops.maxValue) + '<br>' +
-             'worst: ' + (kprops.lowerIsBetter?kprops.maxValue:kprops.minValue)
+             'Best : ' + (kprops.lowerIsBetter?kprops.minValue:kprops.maxValue) + '<br>' +
+             'Worst: ' + (kprops.lowerIsBetter?kprops.maxValue:kprops.minValue) + '<br>' +
+             'Filtered best : ' + (kprops.lowerIsBetter?kprops.minFilteredValue:kprops.maxFilteredValue) + '<br>' +
+             'Filtered worst: ' + (kprops.lowerIsBetter?kprops.maxFilteredValue:kprops.minFilteredValue)
 
       return tooltip
     },
-
     getKeepEmpty: (state) => (k) => {
       if (!k) {return false}
       return state.keyProperties[k].filters['keepEmpty']
     },
+    getFilters: (state) => {
+      return getFilters(state.keyProperties)
+    }
   },
   mutations: {
     sortBy (state, payload) {
@@ -593,17 +635,24 @@ export default new Vuex.Store({
     },
     setConfigKey (state, p) {
       state.configKey = p.key
-      state.configPos = p.pos
+      state.configPosX = p.posX
+      state.configPosY = p.posY
     },
     applyFilter (state, p) {
       let key = p.key
       let filterType = p.filterType
       let filterValue = p.filterValue
-      state.keyProperties[key].filters[filterType] = filterValue
+      Vue.set(state.keyProperties[key].filters, filterType, filterValue)
       let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
       sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])
       Vue.set(state, 'filteredPhones', filteredPhones)
-      console.log(state.filteredPhones.length + '/' + state.allPhones.length)
+    },
+    removeFilter (state, filter) {
+      console.log(filter)
+      Vue.delete(state.keyProperties[filter.key].filters, filter.type)
+      let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
+      sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])
+      Vue.set(state, 'filteredPhones', filteredPhones)
     }
   }
 })
