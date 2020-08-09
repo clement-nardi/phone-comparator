@@ -135,9 +135,10 @@ function extractNumber(obj, propertyName, value, pattern, index) {
 }
 
 function extractCameraSpecs(value) {
-    var modules = value.split('\n')
+    var modules = value.split('\r\n')
     var cameraSpecs = []
     for (var module of modules) {
+      if (module == 'or') {break}
       cameraSpecs.push(extractCameraModuleSpecs(module))
     }
     return cameraSpecs

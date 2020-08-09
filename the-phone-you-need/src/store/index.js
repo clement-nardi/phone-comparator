@@ -192,6 +192,10 @@ function getKeyProperties() {
     }
   }
 
+  props['wideCameraFocalLength']['lowerIsBetter'] = true
+  props['mainCameraFocalLength']['lowerIsBetter'] = true
+  props['selfieCameraFocalLength']['lowerIsBetter'] = true
+
   props['nbRearCameraModules']['getValue'] = (phone) => {
     if (!phone.specs || !phone.specs.rearCameraModules) {return 0}
     return phone.specs.rearCameraModules.length
@@ -346,6 +350,7 @@ function getallKeys() {
     "brand",
     "name",
     "price",
+    "nbOffers",
     "Score",
     "Score/Price ratio",
     "specs.height",

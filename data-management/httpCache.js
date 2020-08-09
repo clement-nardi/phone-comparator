@@ -14,15 +14,20 @@ function getRandomInt(max) {
 }
 
 function fetchBody(uri) {
+
   if (typeof fetchBody.proxies == 'undefined') {
     proxies = loadProxies()
     fetchBody.proxies = proxies
     console.log(proxies.slice(0,20))
   }
+  console.log('fetchBody')
 
   const proxy = fetchBody.proxies[0]
   proxy.nbFetch += 1
   sortProxies(fetchBody.proxies)
+
+  console.log('chosen proxy: ')
+  console.log(proxy)
 
   return proxy.mutex.acquire()
   .then(release => {
@@ -48,6 +53,7 @@ function fetchBody(uri) {
     })
     .catch(err => {
       proxy.stats.nbErrors += 1
+      console.log('catch')
       console.error(err)
       return fetchBody(uri)
     })
@@ -89,10 +95,10 @@ function loadProxies() {
 
 function sortProxies(proxies) {
   proxies.sort((a,b) => {
+    if (a.nbFetch != b.nbFetch) {
+      return a.nbFetch - b.nbFetch
+    }
     return proxyScore(b) - proxyScore(a)
-  })
-  proxies.slice(0, nbParallelProxies).sort((a, b) => {
-    return a.nbFetch - b.nbFetch
   })
 }
 
