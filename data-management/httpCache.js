@@ -1,9 +1,10 @@
-const fetch = require('node-fetch');
-const filenamify = require('filenamify');
+const fetch = require('node-fetch')
+const filenamify = require('filenamify')
 const fs = require('fs').promises
 const oldFs = require('fs')
-var Mutex = require('async-mutex').Mutex;
-var HttpsProxyAgent = require('https-proxy-agent');
+var Mutex = require('async-mutex').Mutex
+var HttpsProxyAgent = require('https-proxy-agent')
+var {Semaphore} = require('await-semaphore')
 
 const cacheDir = './httpCache/'
 const proxyStats = './proxyStats/'
@@ -13,29 +14,35 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
-function fetchBody(uri) {
-
+async function fetchBody(uri) {
   if (typeof fetchBody.proxies == 'undefined') {
     proxies = loadProxies()
     fetchBody.proxies = proxies
     console.log(proxies.slice(0,20))
+    fetchBody.semaphore = new Semaphore(proxies.length / 2);
+    console.log(fetchBody.semaphore)
   }
   console.log('fetchBody')
 
-  const proxy = fetchBody.proxies[0]
-  proxy.nbFetch += 1
-  sortProxies(fetchBody.proxies)
+  let answer = null
+  let nbTries = 0
+  while (! answer) {
+    nbTries += 1
+    let release = await fetchBody.semaphore.acquire()
+    console.log(`try ${nbTries} for ${uri}`)
+    const proxy = fetchBody.proxies[0]
+    proxy.nbFetch += 1
+    sortProxies(fetchBody.proxies)
+  
+    //console.log(fetchBody.proxies.map(p => p.nbFetch).join())
+    //console.log('chosen proxy: ')
+    console.log(proxy.ipPort)
+  
+    try {
+      
+      const start = new Date()
 
-  console.log('chosen proxy: ')
-  console.log(proxy)
-
-  return proxy.mutex.acquire()
-  .then(release => {
-    console.log('fetching ' + uri)
-    const start = new Date()
-    return fetch(uri, { agent: new HttpsProxyAgent('http://' + proxy.ipPort),
-                        timeout: 2000 })
-    .then(res => {
+      let res = await fetch(uri, { agent: new HttpsProxyAgent('http://' + proxy.ipPort), timeout: 0 })
       proxy.stats.lastResponseTime = new Date() - start
       /* if (res.status == 429) {
         var retryAfter = parseInt(res.headers.get('retry-after'))
@@ -46,24 +53,26 @@ function fetchBody(uri) {
       } else */
       if (res.status == 200) {
         proxy.stats.nbSuccess += 1
-        return res.text()
+        proxy.stats.lastResponseIsSuccess = true
+        answer = res.text()
       } else {
         throw new Error(res)
       }
-    })
-    .catch(err => {
+    } catch(err) {
       proxy.stats.nbErrors += 1
-      console.log('catch')
-      console.error(err)
-      return fetchBody(uri)
-    })
-    .finally(() => {
-      fs.writeFile(proxyStats + filenamify(proxy.ipPort), JSON.stringify(proxy.stats))
-      proxy.nbFetch -= 1
-      sortProxies(fetchBody.proxies)
-      setTimeout(release, 200)
-    })
-  })
+      proxy.stats.lastResponseIsSuccess = false
+      //console.log('catch')
+      //console.error(err)
+    }
+    
+    fs.writeFile(proxyStats + filenamify(proxy.ipPort), JSON.stringify(proxy.stats))
+    proxy.nbFetch -= 1
+    sortProxies(fetchBody.proxies)
+    release()
+  }
+
+  return answer
+
 }
 
 function loadProxies() {
@@ -79,13 +88,14 @@ function loadProxies() {
       stats: {
         nbSuccess: 0,
         nbErrors: 0,
-        lastResponseTime: 1
+        lastResponseTime: 1,
+        lastResponseIsSuccess: true
       },
       mutex: new Mutex(),
       nbFetch: 0
     }
     if (oldFs.existsSync(statFile)) {
-      data.stats = JSON.parse(oldFs.readFileSync(statFile))
+      data.stats = {...data.stats, ...JSON.parse(oldFs.readFileSync(statFile))}
     }
     proxies.push(data)
   }
@@ -97,6 +107,9 @@ function sortProxies(proxies) {
   proxies.sort((a,b) => {
     if (a.nbFetch != b.nbFetch) {
       return a.nbFetch - b.nbFetch
+    }
+    if (a.lastResponseIsSuccess != a.lastResponseIsSuccess) {
+      return a.lastResponseIsSuccess? 1 : -1
     }
     return proxyScore(b) - proxyScore(a)
   })

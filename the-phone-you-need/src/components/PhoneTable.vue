@@ -1,6 +1,17 @@
 <template>
   <div>
     <table>
+      
+      <tr v-for="n in this.$store.getters.getNbHeaderLevels"
+          :key="n">
+        <th />
+        <th v-for="(k, i) in getHeadersLevel(n)"
+            :key="i + '_' + k"
+            :colSpan="k.colSpan"
+            class="metaHeader">
+          {{k.title}}
+        </th>
+      </tr>
       <tr>
         <th />
         <th v-for="k in this.$store.state.allKeys"
@@ -49,6 +60,9 @@ export default {
     }
   },
   methods: {
+    getHeadersLevel(n) {
+      return this.$store.getters.getHeadersLevel(n)
+    },
     getHeader(k) {
       return this.$store.getters.getHeader(k)
     },
@@ -101,5 +115,10 @@ th {
 a {
   cursor: pointer;
   text-decoration: underline;
+}
+.metaHeader {
+  text-align: center;
+  border-width: 1px;
+  border-style: solid;
 }
 </style>

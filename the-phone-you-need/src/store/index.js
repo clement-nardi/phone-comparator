@@ -4,14 +4,130 @@ import allPhones from '../../../data-management/allSpecs.json'
 
 Vue.use(Vuex)
 
-function getAllSpecKeys(allPhones) {
+
+/* This array determines the columns order and the various headers*/
+const sortedKeysWithCategories = [
+  { key: 'brand', categories: ['Designation'] },
+  { key: 'name', categories: ['Designation'] },
+  { key: 'price', categories: ['Pricing'] },
+  { key: 'nbOffers', categories: ['Pricing'] },
+  { key: 'Score', categories: ['Score'] },
+  { key: 'Score/Price ratio', categories: ['Score'] },
+  { key: 'specs.height', categories: ['Specifications', 'Body'] },
+  { key: 'specs.width', categories: ['Specifications', 'Body'] },
+  { key: 'specs.thickness', categories: ['Specifications', 'Body'] },
+  { key: 'specs.weight', categories: ['Specifications', 'Body'] },
+  { key: 'specs.ipCertification', categories: ['Specifications', 'Body'] },
+  { key: 'specs.gorillaGlassVersion', categories: ['Specifications', 'Body'] },
+  { key: 'specs.screenSize', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.screenToBodyRatio', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.hasOLED', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.resolutionWidth', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.resolutionHeight', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.ppi', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.refreshRate', categories: ['Specifications', 'Screen'] },
+  { key: 'specs.os', categories: ['Specifications', 'Software'] },
+  { key: 'specs.androidVersion', categories: ['Specifications', 'Software'] },
+  { key: 'specs.hasGoogleServices', categories: ['Specifications', 'Software'] },
+  { key: 'specs.nbCores', categories: ['Specifications', 'Hardware', 'CPU'] },
+  { key: 'specs.maxClock', categories: ['Specifications', 'Hardware', 'CPU'] },
+  { key: 'specs.transistorSize', categories: ['Specifications', 'Hardware', 'CPU'] },
+  { key: 'RAM min', categories: ['Specifications', 'Hardware', 'RAM'] },
+  { key: 'RAM max', categories: ['Specifications', 'Hardware', 'RAM'] },
+  { key: 'Storage min', categories: ['Specifications', 'Hardware', 'Storage'] },
+  { key: 'Storage max', categories: ['Specifications', 'Hardware', 'Storage'] },
+  { key: 'nbRearCameraModules', categories: ['Specifications', 'Rear Cameras'] },
+  { key: 'mainCameraMP', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraFocalLength', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraMaxAperture', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraSensorSize', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraPixelSize', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraHasOIS', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraHasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCameraHasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'specs.maxFPS', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'teleCameraMP', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraFocalLength', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraOpticalZoom', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraMaxAperture', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraSensorSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraPixelSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraHasOIS', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraHasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCameraHasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'wideCameraMP', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraFocalLength', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraMaxAperture', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraSensorSize', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraPixelSize', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraHasOIS', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraHasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCameraHasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'nbFrontCameraModules', categories: ['Specifications', 'Selfie Cameras'] },
+  { key: 'selfieCameraMP', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraFocalLength', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraMaxAperture', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraSensorSize', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraPixelSize', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraHasOIS', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraHasPhaseDetection', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCameraHasOmniPhaseDetection', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'specs.batteryCapacity', categories: ['Specifications', 'Battery'] },
+  { key: 'specs.enduranceRating', categories: ['Specifications', 'Battery'] },
+  { key: 'specs.maxChargingPower', categories: ['Specifications', 'Battery'] },
+  { key: 'specs.wirelessCharging', categories: ['Specifications', 'Battery'] },
+  { key: 'specs.usbC', categories: ['Specifications', 'Connectivity'] },
+]
+
+const excludedKeys = [
+  'specs.memoryVersions', 
+  'specs.rearCameraModules', 
+  'specs.frontCameraModules',
+  'cameraReview.name',
+  'cameraReview.mobile.link',
+  'cameraReview.selfie.link',
+  'cameraReview.audio.link',
+  'cameraReview.display.link',
+  'link'
+]
+
+
+function getKeysFromPhones(allPhones) {
   var allKeys = new Set()
   for (var phone of allPhones) {
-    if (phone.specs) {
-      allKeys = new Set([...Object.keys(phone.specs).map(x => 'specs.' + x), ...allKeys])
+    allKeys = new Set([...getKeysFromObject(phone), ...allKeys])
+  }
+  console.log([...allKeys])
+  return [...allKeys]
+}
+
+function getKeysFromObject(object) {
+  let keys = new Set()
+  getKeysFromObjectRec(object, '', keys)
+  return keys
+}
+
+function getKeysFromObjectRec(object, prefix, keySet) {
+  for (let key of Object.keys(object)) {
+    let prop = object[key]
+    // console.log(key)
+    if (Array.isArray(prop) || prop === null || prop === undefined) {
+      continue
+    } else if (typeof prop === 'object') {
+      getKeysFromObjectRec(prop, prefix + key + '.', keySet)
+    } else {
+      keySet.add(prefix + key)
     }
   }
-  return [...allKeys]
+}
+
+function wordify(word) {
+  return (word[0].toUpperCase() + word.slice(1))
+    .replace(/[a-z][A-Z]/g, match => (match[0] + ' ' + match[1]))
+    .replace('Nb ', 'Number of ')
+    .replace('Ip ', 'IP ')
+    .replace(/^Os$/, 'OS')
+    .replace(' MP', ' MegaPixels')
 }
 
 function dotAccess(obj, dottedKey) {
@@ -93,6 +209,20 @@ function getKeyProperties() {
     }
   }
 
+  props['RAM max']['getValue'] = (phone) => {
+    if (phone.specs && phone.specs.memoryVersions && phone.specs.memoryVersions.length>0) {
+      return Math.max(...((phone.specs.memoryVersions).map(m => m.RAM)))
+    } else {
+      return undefined
+    }
+  }
+  props['Storage max']['getValue'] = (phone) => {
+    if (phone.specs && phone.specs.memoryVersions && phone.specs.memoryVersions.length>0) {
+      return Math.max(...((phone.specs.memoryVersions).map(m => m.storage)))
+    } else {
+      return undefined
+    }
+  }
 
   /* Camera Properties */
 
@@ -125,27 +255,27 @@ function getKeyProperties() {
       let mfl = 24
       let fl = undefined
       switch (mod) {
-        case 'tele':
-          if (phone.specs.rearCameraModules[0].focalLength) {mfl = phone.specs.rearCameraModules[0].focalLength}
-          if (pm.focalLength) {
-            fl = pm.focalLength
-          } else if (pm.opticalZoom) {
-            fl = mfl * pm.opticalZoom
+      case 'tele':
+        if (phone.specs.rearCameraModules[0].focalLength) {mfl = phone.specs.rearCameraModules[0].focalLength}
+        if (pm.focalLength) {
+          fl = pm.focalLength
+        } else if (pm.opticalZoom) {
+          fl = mfl * pm.opticalZoom
+        }
+        if (!fl) {continue}
+        if (fl > mfl) {
+          if (cam == undefined || fl > cam.focalLength) {
+            cam = pm
           }
-          if (!fl) {continue}
-          if (fl > mfl) {
-            if (cam == undefined || fl > cam.focalLength) {
-              cam = pm
-            }
+        }
+        break
+      case 'wide':
+        if (pm.focalLength < phone.specs.rearCameraModules[0].focalLength) {
+          if (cam == undefined || pm.focalLength < cam.focalLength) {
+            cam = pm
           }
-          break
-        case 'wide':
-          if (pm.focalLength < phone.specs.rearCameraModules[0].focalLength) {
-            if (cam == undefined || pm.focalLength < cam.focalLength) {
-              cam = pm
-            }
-          }
-          break
+        }
+        break
       }
     }
     return cam
@@ -167,26 +297,26 @@ function getKeyProperties() {
           return undefined
         }
         switch (spec) {
-          case 'MP':
-            return pm.megapixels
-          case 'FocalLength':
-            return pm.focalLength
-          case 'OpticalZoom':
-            return pm.opticalZoom
-          case 'MaxAperture':
-            return pm.maxAperture
-          case 'SensorSize':
-            return pm.sensorSize
-          case 'PixelSize':
-            return pm.pixelSize
-          case 'HasOIS':
-            return pm.OIS
-          case 'HasPhaseDetection':
-            if (!pm.autofocus) {return false}
-            return pm.autofocus.includes('PD')
-          case 'HasOmniPhaseDetection':
-            if (!pm.autofocus) {return false}
-            return pm.autofocus.includes('omni')
+        case 'MP':
+          return pm.megapixels
+        case 'FocalLength':
+          return pm.focalLength
+        case 'OpticalZoom':
+          return pm.opticalZoom
+        case 'MaxAperture':
+          return pm.maxAperture
+        case 'SensorSize':
+          return pm.sensorSize
+        case 'PixelSize':
+          return pm.pixelSize
+        case 'HasOIS':
+          return pm.OIS
+        case 'HasPhaseDetection':
+          if (!pm.autofocus) {return false}
+          return pm.autofocus.includes('PD')
+        case 'HasOmniPhaseDetection':
+          if (!pm.autofocus) {return false}
+          return pm.autofocus.includes('omni')
         }
       }
     }
@@ -280,7 +410,12 @@ function getKeyProperties() {
   props['RAM min'].filters.keepEmpty = false
   props['RAM min'].filters.min = 4
 
-
+  /* Headers */
+  for (let keyWithCats of sortedKeysWithCategories) {
+    if (props[keyWithCats.key]) {
+      props[keyWithCats.key]['categories'] = keyWithCats.categories
+    }
+  }
 
   return props
 }
@@ -344,84 +479,21 @@ function getValue(phone, key, kprops) {
 }
 
 function getallKeys() {
-  const allSpecKeys = getAllSpecKeys(allPhones)
-  /* This array determines the columns order */
-  const allKeys = [
-    "brand",
-    "name",
-    "price",
-    "nbOffers",
-    "Score",
-    "Score/Price ratio",
-    "specs.height",
-    "specs.width",
-    "specs.thickness",
-    "specs.weight",
-    "specs.ipCertification",
-    "specs.gorillaGlassVersion",
-    "specs.screenSize",
-    "specs.screenToBodyRatio",
-    "specs.hasOLED",
-    "specs.resolutionWidth",
-    "specs.resolutionHeight",
-    "specs.ppi",
-    "specs.refreshRate",
-    "specs.os",
-    "specs.androidVersion",
-    "specs.hasGoogleServices",
-    "specs.nbCores",
-    "specs.maxClock",
-    "specs.transistorSize",
-    "RAM min",
-    "Storage min",
-    "nbRearCameraModules",
-    "mainCameraMP",
-    "mainCameraFocalLength",
-    "mainCameraMaxAperture",
-    "mainCameraSensorSize",
-    "mainCameraPixelSize",
-    "mainCameraHasOIS",
-    "mainCameraHasPhaseDetection",
-    "mainCameraHasOmniPhaseDetection",
-    "teleCameraMP",
-    "teleCameraFocalLength",
-    "teleCameraOpticalZoom",
-    "teleCameraMaxAperture",
-    "teleCameraSensorSize",
-    "teleCameraPixelSize",
-    "teleCameraHasOIS",
-    "teleCameraHasPhaseDetection",
-    "teleCameraHasOmniPhaseDetection",
-    "wideCameraMP",
-    "wideCameraFocalLength",
-    "wideCameraMaxAperture",
-    "wideCameraSensorSize",
-    "wideCameraPixelSize",
-    "wideCameraHasOIS",
-    "wideCameraHasPhaseDetection",
-    "wideCameraHasOmniPhaseDetection",
-    "nbFrontCameraModules",
-    "selfieCameraMP",
-    "selfieCameraFocalLength",
-    "selfieCameraMaxAperture",
-    "selfieCameraSensorSize",
-    "selfieCameraPixelSize",
-    "selfieCameraHasOIS",
-    "selfieCameraHasPhaseDetection",
-    "selfieCameraHasOmniPhaseDetection",
-    "specs.maxFPS",
-    "specs.batteryCapacity",
-    "specs.enduranceRating",
-    "specs.maxChargingPower",
-    "specs.wirelessCharging",
-    "specs.usbC",
-  ]
-  for (var key of allSpecKeys) {
-    if (!allKeys.includes(key) && !["specs.memoryVersions", "specs.rearCameraModules", "specs.frontCameraModules"].includes(key)) {
-      allKeys.push(key)
+  const allKeys = getKeysFromPhones(allPhones)
+
+  let sortedKeys = sortedKeysWithCategories.map(kc => kc.key)
+
+  for (var key of allKeys) {
+    if (!sortedKeys.includes(key)) {
+      if (!excludedKeys.includes(key)) {
+        console.log('additional key: ' + key)
+        sortedKeys.push(key)
+      } else {
+        console.log('filtered-out key: ' + key)
+      }
     }
   }
-  return allKeys
+  return sortedKeys
 }
 
 function getScore(phone, k, kprops) {
@@ -468,21 +540,21 @@ function getFilteredPhones(phones, keyProperties) {
       let v = getValue(phone, filter.key, keyProperties[filter.key])
       let fv = filter.value
       switch (filter.type) {
-        case 'min':
-          if (v < fv) {
-            isFilteredOut = true
-          }
-          break
-        case 'max':
-          if (v > fv) {
-            isFilteredOut = true
-          }
-          break
-        case 'keepEmpty':
-          if (!fv && (v == undefined || v == null)) {
-            isFilteredOut = true
-          }
-          break
+      case 'min':
+        if (v < fv) {
+          isFilteredOut = true
+        }
+        break
+      case 'max':
+        if (v > fv) {
+          isFilteredOut = true
+        }
+        break
+      case 'keepEmpty':
+        if (!fv && (v == undefined || v == null)) {
+          isFilteredOut = true
+        }
+        break
       }
       if (isFilteredOut) {break}
     }
@@ -496,7 +568,7 @@ function getFilteredPhones(phones, keyProperties) {
 
 function sortBy(phones, key, bestFirst, kprops) {
   var coef = (kprops.lowerIsBetter?-1:1) * (bestFirst?1:-1)
-  /* this way, empty values are shown at the top when requesting "see worst first" */
+  /* this way, empty values are shown at the top when requesting 'see worst first' */
   //var defaultValue = kprops.lowerIsBetter?(kprops.maxValue + 1):(kprops.minValue - 1)
   /* Empty values always at the bottom */
   var defaultValue = (coef==-1)?(kprops.maxValue + 1):(kprops.minValue - 1)
@@ -507,11 +579,11 @@ function sortBy(phones, key, bestFirst, kprops) {
     if (vb == undefined) { vb = defaultValue }
     var compare
     switch (getType(kprops.types)) {
-      case 'string':
-        compare = va.localeCompare(vb)
-        break
-      default:
-        compare = (vb - va)
+    case 'string':
+      compare = va.localeCompare(vb)
+      break
+    default:
+      compare = (vb - va)
     }
     return compare * coef
   })
@@ -552,15 +624,15 @@ export default new Vuex.Store({
           return kprops['getLabel'](phone)
         }
         switch (getType(state.keyProperties[k].types)) {
-          case 'boolean':
-            return rawData?'Y':'N'
-          case 'object':
-            return JSON.stringify(rawData)
-          default:
-            if (kprops['adaptValue']) {
-              return kprops['adaptValue'](rawData)
-            }
-            return rawData
+        case 'boolean':
+          return rawData?'Y':'N'
+        case 'object':
+          return JSON.stringify(rawData)
+        default:
+          if (kprops['adaptValue']) {
+            return kprops['adaptValue'](rawData)
+          }
+          return rawData
         }
       } else {
         return ''
@@ -577,9 +649,11 @@ export default new Vuex.Store({
       let kprops = state.keyProperties[k]
       let score = getScore(phone, k, kprops)
       if (score == undefined) {return 'inherit'}
-      let colorMap = [{score: 0, color: [180, 0, 0]},
-                      {score: 0.5, color: [120, 120, 0]},
-                      {score: 1, color: [0, 180, 60]} ]
+      let colorMap = [
+        {score: 0, color: [180, 0, 0]},
+        {score: 0.5, color: [120, 120, 0]},
+        {score: 1, color: [0, 180, 60]} 
+      ]
       let color = [0,0,0]
       for (let j in colorMap) {
         if (j == 0) {continue}
@@ -596,30 +670,61 @@ export default new Vuex.Store({
       }
       return 'rgb(' + color.join() + ')'
     },
+    getNbHeaderLevels: () => {return 3},
+    getHeadersLevel: (state) => (n) => {
+      let previousLevelHeader = '$fake$'
+      let allKeys = [...state.allKeys]
+      allKeys.push('$fake$')
+      let keyCount = 0
+      let headers = []
+      for (let key of allKeys) {
+        let levelHeader = ''
+        let categories = []
+        if (state.keyProperties[key] && state.keyProperties[key]['categories']) {
+          categories = state.keyProperties[key]['categories']
+        } else {
+          categories = key.split('.')
+          categories.pop()
+        }
+        if (categories.length >= n) {
+          levelHeader = categories[n-1]
+        }
+        if (previousLevelHeader == '$fake$') {
+          /* first key only */ 
+          previousLevelHeader = levelHeader
+        } else if (levelHeader != previousLevelHeader) {
+          headers.push({
+            title: previousLevelHeader,
+            colSpan: keyCount
+          })
+          previousLevelHeader = levelHeader
+          keyCount = 0
+        }
+        keyCount += 1
+      }
+      console.log(headers)
+      return headers
+    },
     getHeader: () => (k) => {
       if (!k) {return undefined}
       var spec = k.split('.').pop()
-      return (spec[0].toUpperCase() + spec.slice(1))
-        .replace(/[a-z][A-Z]/g, match => (match[0] + ' ' + match[1]))
-        .replace('Nb ', 'Number of ')
-        .replace('Ip ', 'IP ')
-        .replace(/^Os$/, 'OS')
-        .replace(' MP', ' MegaPixels')
-
+      return wordify(spec)
     },
     getHeaderWidth: (state) => (k) => {
       var kprops = state.keyProperties[k]
       if (kprops['width']) {return kprops['width']}
       switch (getType(kprops.types)) {
-        case 'boolean':
-          return '8px'
-        default:
-          return 'auto'
+      case 'boolean':
+        return '8px'
+      default:
+        return 'auto'
       }
     },
     getHeaderTooltip: (state, getters) => (k) => {
-      var kprops = state.keyProperties[k]
-      var tooltip = getters.getHeader(k) + '<br>' +
+      var kprops = state.keyProperties[k]      
+      //var title = k.split('.').map(w => wordify(w)).join(' ')
+      var title = getters.getHeader(k)
+      var tooltip = title + '<br>' +
              'Best : ' + (kprops.lowerIsBetter?kprops.minValue:kprops.maxValue) + '<br>' +
              'Worst: ' + (kprops.lowerIsBetter?kprops.maxValue:kprops.minValue) + '<br>' +
              'Filtered best : ' + (kprops.lowerIsBetter?kprops.minFilteredValue:kprops.maxFilteredValue) + '<br>' +

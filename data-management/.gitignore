@@ -1,5 +1,5 @@
-httpCache
-node_modules
-http_proxies.txt
-proxyStats
+httpCache*
+node_modules*
+http_proxies.txt*
+proxyStats*
 allSpecs*.json

@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "serve",
+			"path": "the-phone-you-need/",
+			"problemMatcher": [],
+			"label": "npm: serve - the-phone-you-need",
+			"detail": "vue-cli-service serve"
+		}
+	]
+}
