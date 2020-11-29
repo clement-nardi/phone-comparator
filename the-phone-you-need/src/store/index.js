@@ -79,6 +79,68 @@ const sortedKeysWithCategories = [
   { key: 'specs.usbC', categories: ['Specifications', 'Connectivity'] },
 ]
 
+function getKeyCategories(key, kprops) {
+  let categories = null
+  if (kprops && kprops['categories']) {
+    categories = kprops['categories']
+  } else {
+    categories = key.split('.')
+    categories.pop()
+  }
+  return categories
+}
+
+var keyWeights  = {
+  '_default_': 0,
+  'Specifications': {
+    '_default_': 10,
+    'Hardware': {
+      'RAM': {
+        'RAM max': 4
+      },
+      'Storage': {
+        'Storage max': 4
+      }
+    },
+    'Rear Cameras': {
+      'Wide Angle Camera': 7
+    },
+    'Selfie Cameras': 8,
+    'Battery': {
+      'specs.maxChargingPower': 6,
+      'specs.wirelessCharging': 4
+    }
+  }
+}
+
+function getWeight(key, kprops) {
+  const path = [...getKeyCategories(key, kprops)]
+  path.push(key)
+  let currentWeightObject = keyWeights
+  let currentWeight = 0
+  for (let pathElement of path) {
+    if (typeof currentWeightObject === 'object') {
+      if (currentWeightObject['_default_']) {
+        currentWeight = currentWeightObject['_default_']
+      }
+      if (currentWeightObject[pathElement]) {
+        currentWeightObject = currentWeightObject[pathElement]
+      } else {
+        break
+      }
+    } else {
+      currentWeight = currentWeightObject
+      break
+    }
+  }
+  return currentWeight
+}
+
+/*
+function setWeight(key) {
+
+}*/
+
 const excludedKeys = [
   'specs.memoryVersions', 
   'specs.rearCameraModules', 
@@ -492,7 +554,8 @@ function getPhoneScore(phone, props) {
         if (isNaN(keyScore)) {
           console.log(key)
         }
-        phoneScore += keyScore * 10
+        let weight = getWeight(key, kprops)
+        phoneScore += keyScore * weight
       }
     }
   }
@@ -679,6 +742,10 @@ export default new Vuex.Store({
       }
       return 'rgb(' + color.join() + ')'
     },
+    getColumnBackgroundColor: (state) => (key) => {
+      let w = getWeight(key, state.keyProperties[key])
+      return 'rgb(' + [5*w, 5*w, 195*w/10 + ((state.darktheme)?0:60)].join() + ')'
+    },
     getNbHeaderLevels: () => {return 3},
     getHeadersLevel: (state) => (n) => {
       let previousLevelHeader = '$fake$'
@@ -688,13 +755,7 @@ export default new Vuex.Store({
       let headers = []
       for (let key of allKeys) {
         let levelHeader = ''
-        let categories = []
-        if (state.keyProperties[key] && state.keyProperties[key]['categories']) {
-          categories = state.keyProperties[key]['categories']
-        } else {
-          categories = key.split('.')
-          categories.pop()
-        }
+        let categories = getKeyCategories(key, state.keyProperties[key])
         if (categories.length >= n) {
           levelHeader = categories[n-1]
         }

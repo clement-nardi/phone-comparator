@@ -5,7 +5,7 @@
         <col />
         <col v-for="k in this.$store.state.allKeys"
             :key="k"
-            :style="'width: ' + getHeaderWidth(k)">
+            :style="'width: ' + getHeaderWidth(k) + '; background-color: ' + getColumnBackgroundColor(k) + ';' ">
       </colgroup>
       <tr v-for="n in this.$store.getters.getNbHeaderLevels"
           :key="n">
@@ -72,6 +72,9 @@ export default {
     },
     getHeaderWidth(k) {
       return this.$store.getters.getHeaderWidth(k)
+    },
+    getColumnBackgroundColor(k) {
+      return this.$store.getters.getColumnBackgroundColor(k)
     },
     getHeaderTooltip(k) {
       return this.$store.getters.getHeaderTooltip(k)
