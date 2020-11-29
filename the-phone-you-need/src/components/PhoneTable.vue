@@ -98,7 +98,7 @@ export default {
 <style scoped>
 table {
   table-layout: fixed;
-  width: 100%;
+  width: 200%;
   border-collapse: collapse;
 }
 th {

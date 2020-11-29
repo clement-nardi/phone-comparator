@@ -378,28 +378,11 @@ function getKeyProperties() {
     }
   }
 
-  props['Score']['getValue'] = (phone) => {
-    let phoneScore = 0
-    for (let key of allKeys) {
-      if (key == 'Score' || key == 'Score/Price ratio') {continue}
-      let kprops = props[key]
-      let type = getType(kprops.types)
-      if (type == 'number' || type == 'boolean') {
-        let keyScore = getScore(phone, key, props[key])
-        if (typeof keyScore == 'number') {
-          if (isNaN(keyScore)) {
-            console.log(key)
-          }
-          phoneScore += keyScore * 10
-        }
-      }
-    }
-    return phoneScore
+  props['Score/Price ratio']['getValue'] = phone => {
+    return phone['Score'] / phone.price
   }
 
-  props['Score/Price ratio']['getValue'] = phone => {
-    return props['Score']['getValue'](phone) / phone.price
-  }
+  computeAllScores(allPhones, props)
 
   analysePropValues(props, 'Score')
   analysePropValues(props, 'Score/Price ratio')
@@ -496,11 +479,36 @@ function getallKeys() {
   return sortedKeys
 }
 
+function computeAllScores(phones, props) {
+  for (let phone of phones) {
+    phone['Score'] = getPhoneScore(phone, props)
+  }
+}
+
+function getPhoneScore(phone, props) {
+  let phoneScore = 0
+  for (let key of allKeys) {
+    if (key == 'Score' || key == 'Score/Price ratio') {continue}
+    let kprops = props[key]
+    let type = getType(kprops.types)
+    if (type == 'number' || type == 'boolean') {
+      let keyScore = getScore(phone, key, kprops)
+      if (typeof keyScore == 'number') {
+        if (isNaN(keyScore)) {
+          console.log(key)
+        }
+        phoneScore += keyScore * 10
+      }
+    }
+  }
+  return phoneScore
+}
+
 function getScore(phone, k, kprops) {
   let value = getValue(phone, k, kprops)
   const min = kprops.minFilteredValue
   const max = kprops.maxFilteredValue
-  if (! (max-min) ||value == undefined) {
+  if (! (max-min) || value == undefined) {
     return undefined
   }
   let score = (value - min) / (max - min)
