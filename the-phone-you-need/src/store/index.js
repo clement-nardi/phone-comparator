@@ -37,41 +37,41 @@ const sortedKeysWithCategories = [
   { key: 'Storage min', categories: ['Specifications', 'Hardware', 'Storage'] },
   { key: 'Storage max', categories: ['Specifications', 'Hardware', 'Storage'] },
   { key: 'nbRearCameraModules', categories: ['Specifications', 'Rear Cameras'] },
-  { key: 'mainCameraMP', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraFocalLength', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraMaxAperture', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraSensorSize', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraPixelSize', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraHasOIS', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraHasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'mainCameraHasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.MP', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.FocalLength', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.MaxAperture', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.SensorSize', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.PixelSize', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.HasOIS', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.HasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
+  { key: 'mainCamera.HasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
   { key: 'specs.maxFPS', categories: ['Specifications', 'Rear Cameras', 'Main Camera'] },
-  { key: 'teleCameraMP', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraFocalLength', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraOpticalZoom', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraMaxAperture', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraSensorSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraPixelSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraHasOIS', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraHasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'teleCameraHasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
-  { key: 'wideCameraMP', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraFocalLength', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraMaxAperture', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraSensorSize', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraPixelSize', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraHasOIS', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraHasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
-  { key: 'wideCameraHasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'teleCamera.MP', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.FocalLength', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.OpticalZoom', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.MaxAperture', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.SensorSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.PixelSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.HasOIS', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.HasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'teleCamera.HasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'wideCamera.MP', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.FocalLength', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.MaxAperture', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.SensorSize', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.PixelSize', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.HasOIS', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.HasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
+  { key: 'wideCamera.HasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
   { key: 'nbFrontCameraModules', categories: ['Specifications', 'Selfie Cameras'] },
-  { key: 'selfieCameraMP', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraFocalLength', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraMaxAperture', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraSensorSize', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraPixelSize', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraHasOIS', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraHasPhaseDetection', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
-  { key: 'selfieCameraHasOmniPhaseDetection', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.MP', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.FocalLength', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.MaxAperture', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.SensorSize', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.PixelSize', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.HasOIS', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.HasPhaseDetection', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
+  { key: 'selfieCamera.HasOmniPhaseDetection', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
   { key: 'specs.batteryCapacity', categories: ['Specifications', 'Battery'] },
   { key: 'specs.enduranceRating', categories: ['Specifications', 'Battery'] },
   { key: 'specs.maxChargingPower', categories: ['Specifications', 'Battery'] },
@@ -284,7 +284,7 @@ function getKeyProperties() {
 
   for (let mod of modules) {
     for (let spec of camSpecs) {
-      let k = mod + 'Camera' + spec
+      let k = mod + 'Camera.' + spec
       if (!allKeys.includes(k)) {
         continue
       }
@@ -322,9 +322,9 @@ function getKeyProperties() {
     }
   }
 
-  props['wideCameraFocalLength']['lowerIsBetter'] = true
-  props['mainCameraFocalLength']['lowerIsBetter'] = true
-  props['selfieCameraFocalLength']['lowerIsBetter'] = true
+  props['wideCamera.FocalLength']['lowerIsBetter'] = true
+  props['mainCamera.FocalLength']['lowerIsBetter'] = true
+  props['selfieCamera.FocalLength']['lowerIsBetter'] = true
 
   props['nbRearCameraModules']['getValue'] = (phone) => {
     if (!phone.specs || !phone.specs.rearCameraModules) {return 0}
@@ -337,7 +337,7 @@ function getKeyProperties() {
 
 
   /* Small columns: 1 figure */
-  let smallColumns = ['specs.gorillaGlassVersion', 'specs.os', 'specs.nbCores', 'nbRearCameraModules', 'teleCameraOpticalZoom', 'nbFrontCameraModules']
+  let smallColumns = ['specs.gorillaGlassVersion', 'specs.os', 'specs.nbCores', 'nbRearCameraModules', 'teleCamera.OpticalZoom', 'nbFrontCameraModules']
   for (let key of smallColumns) {
     props[key].width = '8px'
   }
@@ -348,19 +348,20 @@ function getKeyProperties() {
     'specs.androidVersion',
     'specs.transistorSize',
     'RAM min',
-    'mainCameraFocalLength',
-    'teleCameraMP',
-    'wideCameraMP',
-    'wideCameraFocalLength',
-    'selfieCameraMP',
-    'selfieCameraFocalLength',
+    'RAM max',
+    'mainCamera.FocalLength',
+    'teleCamera.MP',
+    'wideCamera.MP',
+    'wideCamera.FocalLength',
+    'selfieCamera.MP',
+    'selfieCamera.FocalLength',
     'specs.maxChargingPower'
   ]
   for (let key of mediumColumns) {
     props[key].width = '16px'
   }
   /* 2 figures and a '.' */
-  let mediumColumns2 = ['specs.thickness', 'mainCameraMaxAperture', 'teleCameraMaxAperture', 'wideCameraMaxAperture', 'selfieCameraMaxAperture']
+  let mediumColumns2 = ['specs.thickness', 'mainCamera.MaxAperture', 'teleCamera.MaxAperture', 'wideCamera.MaxAperture', 'selfieCamera.MaxAperture']
   for (let key of mediumColumns2) {
     props[key].width = '19px'
   }
@@ -381,12 +382,6 @@ function getKeyProperties() {
   props['Score/Price ratio']['getValue'] = phone => {
     return phone['Score'] / phone.price
   }
-
-  computeAllScores(allPhones, props)
-
-  analysePropValues(props, 'Score')
-  analysePropValues(props, 'Score/Price ratio')
-
 
   /* set default filters here */
 
@@ -571,6 +566,12 @@ function getFilteredPhones(phones, keyProperties) {
     }
   }
   analyseFilteredProps(filteredPhones, keyProperties)
+
+  computeAllScores(allPhones, keyProperties)
+
+  analysePropValues(keyProperties, 'Score')
+  analysePropValues(keyProperties, 'Score/Price ratio')
+
   return filteredPhones
 }
 

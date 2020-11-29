@@ -1,7 +1,12 @@
 <template>
   <div>
     <table>
-      
+      <colgroup>
+        <col />
+        <col v-for="k in this.$store.state.allKeys"
+            :key="k"
+            :style="'width: ' + getHeaderWidth(k)">
+      </colgroup>
       <tr v-for="n in this.$store.getters.getNbHeaderLevels"
           :key="n">
         <th />
@@ -15,8 +20,7 @@
       <tr>
         <th />
         <th v-for="k in this.$store.state.allKeys"
-            :key="k"
-            :style="'width: ' + getHeaderWidth(k)">
+            :key="k">
           <button @click="headerClicked(k,$event)" class="headerButton" :style="headerStyle(k)">
             <LabelWithTooltip :label="getHeader(k) + ''" :tooltip="getHeaderTooltip(k) + ''" :below="true" />
           </button>
@@ -120,5 +124,6 @@ a {
   text-align: center;
   border-width: 1px;
   border-style: solid;
+  width: auto;
 }
 </style>
