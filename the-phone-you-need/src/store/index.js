@@ -744,36 +744,84 @@ export default new Vuex.Store({
     },
     getColumnBackgroundColor: (state) => (key) => {
       let w = getWeight(key, state.keyProperties[key])
-      return 'rgb(' + [5*w, 5*w, 195*w/10 + ((state.darktheme)?0:60)].join() + ')'
-    },
-    getNbHeaderLevels: () => {return 3},
-    getHeadersLevel: (state) => (n) => {
-      let previousLevelHeader = '$fake$'
-      let allKeys = [...state.allKeys]
-      allKeys.push('$fake$')
-      let keyCount = 0
-      let headers = []
-      for (let key of allKeys) {
-        let levelHeader = ''
-        let categories = getKeyCategories(key, state.keyProperties[key])
-        if (categories.length >= n) {
-          levelHeader = categories[n-1]
-        }
-        if (previousLevelHeader == '$fake$') {
-          /* first key only */ 
-          previousLevelHeader = levelHeader
-        } else if (levelHeader != previousLevelHeader) {
-          headers.push({
-            title: previousLevelHeader,
-            colSpan: keyCount
-          })
-          previousLevelHeader = levelHeader
-          keyCount = 0
-        }
-        keyCount += 1
+      if (w > 0) {
+        return 'rgb(' + [
+          5*w + ((state.darktheme)?0:60), 
+          5*w + ((state.darktheme)?0:60), 
+          195*w/10 + ((state.darktheme)?0:60)
+        ].join() + ')'
+      } else {
+        return 'inherit'
       }
-      console.log(headers)
-      return headers
+    },
+    /* returns a matrix of header objects {title, colSpan, rowSpan} */
+    getHeaderLevels: (state) => {
+      let levels = []
+      let n
+      for (n = 1; n <=3; n += 1) {
+        let previousHeader = '$fake$'
+        let allKeys = [...state.allKeys]
+        allKeys.push('$fake$')
+        let keyCount = 0
+        let headers = []
+        for (let key of allKeys) {
+          let header = ''
+          let categories = getKeyCategories(key, state.keyProperties[key])
+          if (categories.length >= n) {
+            header = categories[n-1]
+          }
+          if (previousHeader == '$fake$') {
+            /* first key only */ 
+            previousHeader = header
+          } else if (header != previousHeader) {
+            headers.push({
+              title: previousHeader,
+              colSpan: keyCount,
+              rowSpan: 1
+            })
+            previousHeader = header
+            keyCount = 0
+          }
+          keyCount += 1
+        }
+        console.log(headers)
+        levels.push(headers)
+      }
+      
+      /* merge empty layers with above layers */
+      for (n = 2; n >=1; n -= 1) {
+        let aboveIdx = 0
+        let aboveKeyIdx = 0
+        let currentIdx = 0
+        let currentKeyIdx = 0
+        while (aboveIdx < levels[n-1].length && currentIdx < levels[n].length) {
+          let above = levels[n-1][aboveIdx]
+          let current = levels[n][currentIdx]
+          if (currentKeyIdx < aboveKeyIdx || current.title != '') {
+            currentIdx += 1
+            currentKeyIdx += current.colSpan
+          } else if (currentKeyIdx > aboveKeyIdx) {
+            aboveIdx += 1
+            aboveKeyIdx += above.colSpan
+          } else { // currentKeyIdx == aboveKeyIdx AND current.title == ''
+            if (current.colSpan >= above.colSpan) {
+              above.rowSpan += current.rowSpan
+              aboveIdx += 1
+              aboveKeyIdx += above.colSpan
+              current.colSpan -= above.colSpan
+              currentKeyIdx += above.colSpan
+              if (current.colSpan == 0) {
+                levels[n].splice(currentIdx, 1)
+              }
+            } else {
+              currentIdx += 1
+              currentKeyIdx += current.colSpan
+            }
+          }
+        }
+      }
+
+      return levels
     },
     getHeader: () => (k) => {
       if (!k) {return undefined}

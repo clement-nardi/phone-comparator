@@ -30,8 +30,8 @@
 
 <script>
 //import LabelWithTooltip from './LabelWithTooltip'
-import noUiSlider from 'nouislider';
-import 'nouislider/distribute/nouislider.css';
+import noUiSlider from 'nouislider'
+import 'nouislider/distribute/nouislider.css'
 var currentKey = undefined
 
 export default {
@@ -65,12 +65,12 @@ export default {
           const kprops = this.$store.state.keyProperties[k]
           let min = kprops.minValue
           let max = kprops.maxValue
-          const filterSlider = document.getElementById('filterSlider');
+          const filterSlider = document.getElementById('filterSlider')
           const showSlider = (typeof max == 'number') && filterSlider && min != max
           if (showSlider ) {
             let range = {
-                'min': min,
-                'max': max
+              'min': min,
+              'max': max
             }
             let snap = false
             if (kprops.values.length < 50) {
@@ -88,7 +88,8 @@ export default {
             if (kprops.filters['max']) {
               start[1] = kprops.filters['max']
             }
-            filterSlider.noUiSlider.updateOptions( {
+            filterSlider.noUiSlider.updateOptions( 
+              {
                 start: start,
                 connect: true,
                 snap: snap,
@@ -111,16 +112,16 @@ export default {
       var pos = Math.max(0,this.$store.state.configPosX - 150)
       pos = Math.min(pos, window.innerWidth - 360)
       return 'left:' + pos + 'px;' + 'top:' + (this.$store.state.configPosY+12) + 'px;' + 
-       "visibility:" + (this.key?'visible':'hidden')
+       'visibility:' + (this.key?'visible':'hidden')
     }
   },
   methods: {
     sort(bestFirst) {
-      this.$store.commit("sortBy", { key: this.key, bestFirst: bestFirst })
+      this.$store.commit('sortBy', { key: this.key, bestFirst: bestFirst })
       this.hide()
     },
     hide() {
-      this.$store.commit("setConfigKey", { key: null, pos: 0})
+      this.$store.commit('setConfigKey', { key: null, pos: 0})
     },
     updateMinMax(values, handle) {
       if (handle == 0) {
@@ -130,8 +131,6 @@ export default {
       }
     },
     applyFilter(values, handle) {
-      console.log(values)
-        console.log(handle)
       this.$store.commit('applyFilter', {
         key: currentKey,
         filterType: (handle==0)?'min':'max',
@@ -145,19 +144,20 @@ export default {
     }
   },
   mounted: function () {
-    const filterSlider = this.$refs['filterSlider'];
+    const filterSlider = this.$refs['filterSlider']
     if (filterSlider) {
-      noUiSlider.create(filterSlider, {
+      noUiSlider.create(filterSlider, 
+        {
           start: [20, 80],
           connect: true,
           range: {
-              'min': 0,
-              'max': 100
+            'min': 0,
+            'max': 100
           }
         }
-      );
-      filterSlider.noUiSlider.on('update', this.updateMinMax);
-      filterSlider.noUiSlider.on('change', this.applyFilter);
+      )
+      filterSlider.noUiSlider.on('update', this.updateMinMax)
+      filterSlider.noUiSlider.on('change', this.applyFilter)
     }
   }
 }

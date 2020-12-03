@@ -7,12 +7,13 @@
             :key="k"
             :style="'width: ' + getHeaderWidth(k) + '; background-color: ' + getColumnBackgroundColor(k) + ';' ">
       </colgroup>
-      <tr v-for="n in this.$store.getters.getNbHeaderLevels"
+      <tr v-for="(headers, n) in this.$store.getters.getHeaderLevels"
           :key="n">
         <th />
-        <th v-for="(k, i) in getHeadersLevel(n)"
+        <th v-for="(k, i) in headers"
             :key="i + '_' + k"
             :colSpan="k.colSpan"
+            :rowSpan="k.rowSpan"
             class="metaHeader">
           {{k.title}}
         </th>

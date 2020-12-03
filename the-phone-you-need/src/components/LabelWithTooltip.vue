@@ -24,7 +24,7 @@ export default {
   methods: {
     showTooltip() {
       const labelEl = this.$refs['labelRef']
-      var container = document.getElementById("tooltip");
+      var container = document.getElementById('tooltip')
       if (labelEl.scrollWidth > labelEl.clientWidth || this.label != this.tooltip) {
         container.innerHTML = this.tooltip
         container.style.visibility = 'visible'
