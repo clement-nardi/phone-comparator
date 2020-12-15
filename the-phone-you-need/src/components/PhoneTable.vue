@@ -65,9 +65,6 @@ export default {
     }
   },
   methods: {
-    getHeadersLevel(n) {
-      return this.$store.getters.getHeadersLevel(n)
-    },
     getHeader(k) {
       return this.$store.getters.getHeader(k)
     },

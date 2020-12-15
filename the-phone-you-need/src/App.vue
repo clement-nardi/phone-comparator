@@ -4,6 +4,7 @@
     <div id="tooltip"/>
     <PhoneTable />
     <ColumnConfig />
+    <WeightsEditor />
   </div>
 </template>
 
@@ -11,13 +12,15 @@
 import PhoneTable from './components/PhoneTable.vue'
 import ColumnConfig from './components/ColumnConfig.vue'
 import Settings from './components/Settings.vue'
+import WeightsEditor from './components/WeightsEditor.vue'
 
 export default {
   name: 'App',
   components: {
     PhoneTable,
     ColumnConfig,
-    Settings
+    Settings,
+    WeightsEditor
   }
 }
 </script>

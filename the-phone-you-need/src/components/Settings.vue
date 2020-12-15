@@ -12,6 +12,7 @@
     <div>
       Dark theme:
       <input type="checkbox" v-model="darktheme" />
+      <button id="openWeightEditorButton" @click="openWeightEditor">Customize Score</button>
     </div>
   </div>
 </template>
@@ -47,6 +48,9 @@ export default {
     },
     removeFilter(filter) {
       this.$store.commit('removeFilter',filter)
+    },
+    openWeightEditor() {
+      this.$store.commit('displayWeightEditor')
     }
   },
   events: {

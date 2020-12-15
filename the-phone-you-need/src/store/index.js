@@ -4,6 +4,7 @@ import allPhones from '../../../data-management/allSpecs.json'
 
 Vue.use(Vuex)
 
+const scoresAreAbsolute = true
 
 /* This array determines the columns order and the various headers*/
 const sortedKeysWithCategories = [
@@ -90,40 +91,22 @@ function getKeyCategories(key, kprops) {
   return categories
 }
 
-var keyWeights  = {
-  '_default_': 0,
-  'Specifications': {
-    '_default_': 10,
-    'Hardware': {
-      'RAM': {
-        'RAM max': 4
-      },
-      'Storage': {
-        'Storage max': 4
-      }
-    },
-    'Rear Cameras': {
-      'Wide Angle Camera': 7
-    },
-    'Selfie Cameras': 8,
-    'Battery': {
-      'specs.maxChargingPower': 6,
-      'specs.wirelessCharging': 4
-    }
-  }
+
+function getKeyWeight(keyWeights, key, kprops) {
+  let path = [...getKeyCategories(key, kprops)]
+  path.push(key)
+  return getWeight(keyWeights, path)
 }
 
-function getWeight(key, kprops) {
-  const path = [...getKeyCategories(key, kprops)]
-  path.push(key)
+function getWeight(keyWeights, path) {
   let currentWeightObject = keyWeights
   let currentWeight = 0
-  for (let pathElement of path) {
+  for (let pathElement of [...path, '_fake_']) {
     if (typeof currentWeightObject === 'object') {
       if (currentWeightObject['_default_']) {
         currentWeight = currentWeightObject['_default_']
       }
-      if (currentWeightObject[pathElement]) {
+      if (Object.prototype.hasOwnProperty.call(currentWeightObject, pathElement)) {
         currentWeightObject = currentWeightObject[pathElement]
       } else {
         break
@@ -133,13 +116,38 @@ function getWeight(key, kprops) {
       break
     }
   }
+  //console.log('getWeigth([' + path.join(', ') + ']) = ' + currentWeight)
   return currentWeight
 }
 
-/*
-function setWeight(key) {
 
-}*/
+function setKeyWeight(keyWeights, key, kprops, weight) {
+  let path = [...getKeyCategories(key, kprops)]
+  path.push(key)
+  return setWeight(keyWeights, path, weight)
+}
+
+function setWeight(keyWeights, path_, weight) {
+  let currentWeightObject = keyWeights
+  let path = [...path_]
+  let last = path.pop()
+  for (let pathElement of path) {    
+    if (!currentWeightObject[pathElement]) {
+      Vue.set(currentWeightObject, pathElement, {})
+    } 
+    if (typeof currentWeightObject[pathElement] !== 'object') {
+      Vue.set(currentWeightObject, pathElement, {
+        _default_: currentWeightObject[pathElement]
+      })
+    }
+    currentWeightObject = currentWeightObject[pathElement]
+  }
+  if (typeof currentWeightObject[last] === 'object') {
+    Vue.set(currentWeightObject[last], '_default_', parseInt(weight))
+  } else {
+    Vue.set(currentWeightObject, last, parseInt(weight))
+  }  
+}
 
 const excludedKeys = [
   'specs.memoryVersions', 
@@ -208,7 +216,7 @@ function keyListAccess(obj, list) {
   }
 }
 
-function getKeyProperties() {
+function getKeyProperties(scoresAreAbsolute) {
   var props = {}
   for (var v of allKeys) {
     props[v] = {filters: {keepEmpty: true}}
@@ -442,13 +450,8 @@ function getKeyProperties() {
   }
 
   props['Score/Price ratio']['getValue'] = phone => {
-    return phone['Score'] / phone.price
+    return phone['Score'] / phone.price * 100
   }
-
-  /* set default filters here */
-
-  props['RAM min'].filters.keepEmpty = false
-  props['RAM min'].filters.min = 4
 
   /* Headers */
   for (let keyWithCats of sortedKeysWithCategories) {
@@ -456,6 +459,16 @@ function getKeyProperties() {
       props[keyWithCats.key]['categories'] = keyWithCats.categories
     }
   }
+
+  if (scoresAreAbsolute) {
+    computeAllScores(allPhones, props, keyWeights, scoresAreAbsolute)
+  }
+
+  /* set default filters here */
+
+  props['RAM min'].filters.keepEmpty = false
+  props['RAM min'].filters.min = 4
+
 
   return props
 }
@@ -536,25 +549,41 @@ function getallKeys() {
   return sortedKeys
 }
 
-function computeAllScores(phones, props) {
+function computeAllScores(phones, props, keyWeights, scoresAreAbsolute) {
   for (let phone of phones) {
-    phone['Score'] = getPhoneScore(phone, props)
+    phone['Score'] = getPhoneScore(phone, props, keyWeights, scoresAreAbsolute)
   }
+  analysePropValues(props, 'Score')
+  analysePropValues(props, 'Score/Price ratio')
 }
-
-function getPhoneScore(phone, props) {
+/*
+function getTheoreticalMaxScore(props) {
   let phoneScore = 0
   for (let key of allKeys) {
     if (key == 'Score' || key == 'Score/Price ratio') {continue}
     let kprops = props[key]
     let type = getType(kprops.types)
     if (type == 'number' || type == 'boolean') {
-      let keyScore = getScore(phone, key, kprops)
+      let weight = getKeyWeight(keyWeights, key, kprops)
+      phoneScore += weight
+    }
+  }
+  return phoneScore
+}*/
+
+function getPhoneScore(phone, props, keyWeights, scoresAreAbsolute) {
+  let phoneScore = 0
+  for (let key of allKeys) {
+    if (key == 'Score' || key == 'Score/Price ratio') {continue}
+    let kprops = props[key]
+    let type = getType(kprops.types)
+    if (type == 'number' || type == 'boolean') {
+      let keyScore = getScore(phone, key, kprops, scoresAreAbsolute)
       if (typeof keyScore == 'number') {
         if (isNaN(keyScore)) {
           console.log(key)
         }
-        let weight = getWeight(key, kprops)
+        let weight = getKeyWeight(keyWeights, key, kprops)
         phoneScore += keyScore * weight
       }
     }
@@ -562,10 +591,17 @@ function getPhoneScore(phone, props) {
   return phoneScore
 }
 
-function getScore(phone, k, kprops) {
+function getScore(phone, k, kprops, scoresAreAbsolute) {
   let value = getValue(phone, k, kprops)
-  const min = kprops.minFilteredValue
-  const max = kprops.maxFilteredValue
+  let min
+  let max
+  if (scoresAreAbsolute) {
+    min = kprops.minValue
+    max = kprops.maxValue
+  } else {
+    min = kprops.minFilteredValue
+    max = kprops.maxFilteredValue
+  }
   if (! (max-min) || value == undefined) {
     return undefined
   }
@@ -596,7 +632,7 @@ function getFilters(keyProperties) {
   return filters
 }
 
-function getFilteredPhones(phones, keyProperties) {
+function getFilteredPhones(phones, keyProperties, keyWeights, scoresAreAbsolute) {
   let filteredPhones = []
   let filters = getFilters(keyProperties)
   console.log(filters)
@@ -630,10 +666,9 @@ function getFilteredPhones(phones, keyProperties) {
   }
   analyseFilteredProps(filteredPhones, keyProperties)
 
-  computeAllScores(allPhones, keyProperties)
-
-  analysePropValues(keyProperties, 'Score')
-  analysePropValues(keyProperties, 'Score/Price ratio')
+  if (!scoresAreAbsolute) {
+    computeAllScores(allPhones, keyProperties, keyWeights, scoresAreAbsolute)
+  }
 
   return filteredPhones
 }
@@ -662,9 +697,36 @@ function sortBy(phones, key, bestFirst, kprops) {
 
 }
 
+var keyWeights  = {
+  '_default_': 0,
+  'Specifications': {
+    '_default_':10,
+    'Hardware': {
+      'RAM': {'RAM max':2,'RAM min':8},
+      'Storage':{'Storage max':1,'Storage min':2},
+      'CPU':{'specs.nbCores':4,'specs.maxClock':4}
+    },
+    'Rear Cameras': {
+      'Wide Angle Camera': {'_default_':2,'wideCamera.MP':3,'wideCamera.FocalLength':3,'wideCamera.MaxAperture':4,'wideCamera.SensorSize':4},
+      'nbRearCameraModules':6,
+      'Main Camera': {'_default_':2,'mainCamera.SensorSize':8,'mainCamera.FocalLength':0,'mainCamera.MaxAperture':6,'mainCamera.HasOIS':7,'mainCamera.MP':4,'specs.maxFPS':10},
+      'Zoom Camera 1': {'_default_':3,'teleCamera.MP':5,'teleCamera.FocalLength':7,'teleCamera.OpticalZoom':10,'teleCamera.MaxAperture':8,'teleCamera.SensorSize':8,'teleCamera.HasOIS':6}
+    },
+    'Selfie Cameras': {
+      '_default_':8,
+      'Selfie Camera 1':{'_default_':3,'selfieCamera.MP':5,'selfieCamera.FocalLength':0,'selfieCamera.MaxAperture':6,'selfieCamera.SensorSize':6,'selfieCamera.HasOIS':5}
+    },
+    'Battery':{'specs.maxChargingPower':6,'specs.wirelessCharging':2},
+    'Body':{'_default_':1,'specs.thickness':4,'specs.weight':4,'specs.ipCertification':4,'specs.gorillaGlassVersion':4},
+    'Screen':{'_default_':1,'specs.screenToBodyRatio':10,'specs.hasOLED':8},
+    'Software':{'specs.hasGoogleServices':5},
+    'Connectivity':{'specs.usbC':5}
+  }
+}
+
 var allKeys = getallKeys()
-var keyProperties = getKeyProperties()
-var filteredPhones = getFilteredPhones(allPhones, keyProperties)
+var keyProperties = getKeyProperties(scoresAreAbsolute)
+var filteredPhones = getFilteredPhones(allPhones, keyProperties, keyWeights, scoresAreAbsolute)
 sortBy(filteredPhones, 'Score', true, keyProperties['Score'])
 
 export default new Vuex.Store({
@@ -672,13 +734,16 @@ export default new Vuex.Store({
     allPhones: allPhones,
     keyProperties: keyProperties,
     filteredPhones: filteredPhones,
+    keyWeights: keyWeights,
     nbVisiblePhones: 100,
     allKeys: allKeys,
     configKey: null,
     configPos: 0,
     sortKey: 'Score',
     sortBestFirst: true,
-    darktheme: true
+    darktheme: true,
+    scoresAreAbsolute: scoresAreAbsolute,
+    displayWeightEditor: false
   },
   getters: {
     getPhones: state => () => {
@@ -743,7 +808,7 @@ export default new Vuex.Store({
       return 'rgb(' + color.join() + ')'
     },
     getColumnBackgroundColor: (state) => (key) => {
-      let w = getWeight(key, state.keyProperties[key])
+      let w = getKeyWeight(state.keyWeights, key, state.keyProperties[key])
       if (w > 0) {
         return 'rgb(' + [
           5*w + ((state.darktheme)?0:60), 
@@ -754,12 +819,22 @@ export default new Vuex.Store({
         return 'inherit'
       }
     },
+    getKeyCategories: (state) => (key) => {
+      return getKeyCategories(key, state.keyProperties[key])
+    },
+    getKeyWeight: (state) => (key) => {
+      return getKeyWeight(state.keyWeights, key, state.keyProperties[key])
+    },
+    getWeight: (state) => (path) => {
+      return getWeight(state.keyWeights, path)
+    },
     /* returns a matrix of header objects {title, colSpan, rowSpan} */
     getHeaderLevels: (state) => {
       let levels = []
       let n
       for (n = 1; n <=3; n += 1) {
         let previousHeader = '$fake$'
+        let previousPath = []
         let allKeys = [...state.allKeys]
         allKeys.push('$fake$')
         let keyCount = 0
@@ -773,13 +848,16 @@ export default new Vuex.Store({
           if (previousHeader == '$fake$') {
             /* first key only */ 
             previousHeader = header
+            previousPath = categories.slice(0, n)
           } else if (header != previousHeader) {
             headers.push({
               title: previousHeader,
               colSpan: keyCount,
-              rowSpan: 1
+              rowSpan: 1,
+              path: previousPath
             })
             previousHeader = header
+            previousPath = categories.slice(0, n)
             keyCount = 0
           }
           keyCount += 1
@@ -877,19 +955,34 @@ export default new Vuex.Store({
       let filterType = p.filterType
       let filterValue = p.filterValue
       Vue.set(state.keyProperties[key].filters, filterType, filterValue)
-      let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
+      let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties, state.keyWeights, state.scoresAreAbsolute)
       sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])
       Vue.set(state, 'filteredPhones', filteredPhones)
     },
     removeFilter (state, filter) {
       console.log(filter)
       Vue.delete(state.keyProperties[filter.key].filters, filter.type)
-      let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties)
+      let filteredPhones = getFilteredPhones(state.allPhones, state.keyProperties, state.keyWeights, state.scoresAreAbsolute)
       sortBy(filteredPhones, state.sortKey, state.sortBestFirst, state.keyProperties[state.sortKey])
       Vue.set(state, 'filteredPhones', filteredPhones)
     },
     setNbVisiblePhones (state, nb) {
       state.nbVisiblePhones = nb
+    },
+    displayWeightEditor (state) {
+      state.displayWeightEditor = true
+    },
+    hideWeightEditor (state) {
+      state.displayWeightEditor = false
+    },
+    setKeyWeight: (state, p) => {
+      setKeyWeight(state.keyWeights, p.key, state.keyProperties[p.key], p.weight)
+    },
+    setWeight: (state, p) => {
+      setWeight(state.keyWeights, p.path, p.weight)
+    },
+    updateScores: (state) => {
+      computeAllScores(state.allPhones, state.keyProperties, state.keyWeights, state.scoresAreAbsolute)
     }
   }
 })
