@@ -56,6 +56,15 @@ const sortedKeysWithCategories = [
   { key: 'teleCamera.HasOIS', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
   { key: 'teleCamera.HasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
   { key: 'teleCamera.HasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 1'] },
+  { key: 'tele2Camera.MP', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.FocalLength', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.OpticalZoom', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.MaxAperture', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.SensorSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.PixelSize', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.HasOIS', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.HasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
+  { key: 'tele2Camera.HasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Zoom Camera 2'] },
   { key: 'wideCamera.MP', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
   { key: 'wideCamera.FocalLength', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
   { key: 'wideCamera.MaxAperture', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
@@ -65,6 +74,7 @@ const sortedKeysWithCategories = [
   { key: 'wideCamera.HasPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
   { key: 'wideCamera.HasOmniPhaseDetection', categories: ['Specifications', 'Rear Cameras', 'Wide Angle Camera'] },
   { key: 'nbFrontCameraModules', categories: ['Specifications', 'Selfie Cameras'] },
+  { key: 'specs.frontCameraIsPopUp', categories: ['Specifications', 'Selfie Cameras'] },
   { key: 'selfieCamera.MP', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
   { key: 'selfieCamera.FocalLength', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
   { key: 'selfieCamera.MaxAperture', categories: ['Specifications', 'Selfie Cameras', 'Selfie Camera 1'] },
@@ -79,6 +89,35 @@ const sortedKeysWithCategories = [
   { key: 'specs.wirelessCharging', categories: ['Specifications', 'Battery'] },
   { key: 'specs.usbC', categories: ['Specifications', 'Connectivity'] },
 ]
+
+var keyWeights  = {
+  '_default_': 0,
+  'Specifications': {
+    '_default_':10,
+    'Hardware': {
+      'RAM': {'RAM max':2,'RAM min':8},
+      'Storage':{'Storage max':1,'Storage min':2},
+      'CPU':{'specs.nbCores':4,'specs.maxClock':4}
+    },
+    'Rear Cameras': {
+      'Wide Angle Camera': {'_default_':2,'wideCamera.MP':3,'wideCamera.FocalLength':3,'wideCamera.MaxAperture':4,'wideCamera.SensorSize':4},
+      'nbRearCameraModules':6,
+      'Main Camera': {'_default_':2,'mainCamera.SensorSize':8,'mainCamera.FocalLength':0,'mainCamera.MaxAperture':6,'mainCamera.HasOIS':7,'mainCamera.MP':4,'specs.maxFPS':10},
+      'Zoom Camera 1': {'_default_':3,'teleCamera.MP':5,'teleCamera.FocalLength':7,'teleCamera.OpticalZoom':10,'teleCamera.MaxAperture':8,'teleCamera.SensorSize':8,'teleCamera.HasOIS':6},
+      'Zoom Camera 2': {'_default_':1,'tele2Camera.MP':2,'tele2Camera.FocalLength':4,'tele2Camera.OpticalZoom':5,'tele2Camera.MaxAperture':4,'tele2Camera.SensorSize':4,'tele2Camera.HasOIS':3}
+    },
+    'Selfie Cameras': {
+      '_default_':8,
+      'specs.frontCameraIsPopUp': 10,
+      'Selfie Camera 1':{'_default_':3,'selfieCamera.MP':5,'selfieCamera.FocalLength':0,'selfieCamera.MaxAperture':6,'selfieCamera.SensorSize':6,'selfieCamera.HasOIS':5}
+    },
+    'Battery':{'specs.maxChargingPower':6,'specs.wirelessCharging':2},
+    'Body':{'_default_':1,'specs.thickness':4,'specs.weight':4,'specs.ipCertification':4,'specs.gorillaGlassVersion':4},
+    'Screen':{'_default_':1,'specs.screenToBodyRatio':10,'specs.hasOLED':8},
+    'Software':{'specs.hasGoogleServices':5},
+    'Connectivity':{'specs.usbC':5}
+  }
+}
 
 function getKeyCategories(key, kprops) {
   let categories = null
@@ -241,7 +280,7 @@ function getKeyProperties(scoresAreAbsolute) {
 
   props['specs.height']['adaptValue'] = Math.round
   props['specs.width']['adaptValue'] = Math.round
-  for (var k of ['height', 'width', 'thickness', 'weight', 'transistorSize']) {
+  for (var k of ['height', 'width', 'thickness', 'weight', 'transistorSize', 'frontCameraIsPopUp']) {
     props['specs.' + k]['lowerIsBetter'] = true
   }
 
@@ -296,7 +335,7 @@ function getKeyProperties(scoresAreAbsolute) {
 
   /* Camera Properties */
 
-  let modules = ['main', 'tele', 'wide', 'selfie']
+  let modules = ['main', 'tele', 'tele2', 'wide', 'selfie']
   let camSpecs = [
     'MP',
     'FocalLength',
@@ -321,12 +360,12 @@ function getKeyProperties(scoresAreAbsolute) {
     }
     if (phone.specs.rearCameraModules.length == 1) {return undefined}
     let cam = undefined
+    let cam2 = undefined
     for (let pm of phone.specs.rearCameraModules.slice(1)) {
       let mfl = 24
+      if (phone.specs.rearCameraModules[0].focalLength) {mfl = phone.specs.rearCameraModules[0].focalLength}
       let fl = undefined
-      switch (mod) {
-      case 'tele':
-        if (phone.specs.rearCameraModules[0].focalLength) {mfl = phone.specs.rearCameraModules[0].focalLength}
+      if (mod.includes('tele')) {
         if (pm.focalLength) {
           fl = pm.focalLength
         } else if (pm.opticalZoom) {
@@ -334,22 +373,28 @@ function getKeyProperties(scoresAreAbsolute) {
         }
         if (!fl) {continue}
         if (fl > mfl) {
-          if (cam == undefined || fl > cam.focalLength) {
+          if (cam == undefined) {
             cam = pm
+          } else if (fl > cam.focalLength) {
+            cam2 = cam
+            cam = pm
+          } else {
+            cam2 = pm
           }
         }
-        break
-      case 'wide':
-        if (pm.focalLength < phone.specs.rearCameraModules[0].focalLength) {
+      } else { // mod == 'wide'
+        if (pm.focalLength < mfl) {
           if (cam == undefined || pm.focalLength < cam.focalLength) {
             cam = pm
           }
         }
-        break
       }
     }
-    return cam
-
+    if (mod.includes('2')) {
+      return cam2
+    } else {
+      return cam
+    }
   }
 
   for (let mod of modules) {
@@ -407,7 +452,13 @@ function getKeyProperties(scoresAreAbsolute) {
 
 
   /* Small columns: 1 figure */
-  let smallColumns = ['specs.gorillaGlassVersion', 'specs.os', 'specs.nbCores', 'nbRearCameraModules', 'teleCamera.OpticalZoom', 'nbFrontCameraModules']
+  let smallColumns = [
+    'specs.gorillaGlassVersion', 
+    'specs.os', 
+    'specs.nbCores', 
+    'nbRearCameraModules', 
+    'nbFrontCameraModules'
+  ]
   for (let key of smallColumns) {
     props[key].width = '8px'
   }
@@ -421,6 +472,7 @@ function getKeyProperties(scoresAreAbsolute) {
     'RAM max',
     'mainCamera.FocalLength',
     'teleCamera.MP',
+    'tele2Camera.MP',
     'wideCamera.MP',
     'wideCamera.FocalLength',
     'selfieCamera.MP',
@@ -431,7 +483,16 @@ function getKeyProperties(scoresAreAbsolute) {
     props[key].width = '16px'
   }
   /* 2 figures and a '.' */
-  let mediumColumns2 = ['specs.thickness', 'mainCamera.MaxAperture', 'teleCamera.MaxAperture', 'wideCamera.MaxAperture', 'selfieCamera.MaxAperture']
+  let mediumColumns2 = [
+    'specs.thickness', 
+    'mainCamera.MaxAperture', 
+    'teleCamera.MaxAperture', 
+    'tele2Camera.MaxAperture', 
+    'teleCamera.OpticalZoom', 
+    'tele2Camera.OpticalZoom', 
+    'wideCamera.MaxAperture', 
+    'selfieCamera.MaxAperture'
+  ]
   for (let key of mediumColumns2) {
     props[key].width = '19px'
   }
@@ -697,32 +758,6 @@ function sortBy(phones, key, bestFirst, kprops) {
 
 }
 
-var keyWeights  = {
-  '_default_': 0,
-  'Specifications': {
-    '_default_':10,
-    'Hardware': {
-      'RAM': {'RAM max':2,'RAM min':8},
-      'Storage':{'Storage max':1,'Storage min':2},
-      'CPU':{'specs.nbCores':4,'specs.maxClock':4}
-    },
-    'Rear Cameras': {
-      'Wide Angle Camera': {'_default_':2,'wideCamera.MP':3,'wideCamera.FocalLength':3,'wideCamera.MaxAperture':4,'wideCamera.SensorSize':4},
-      'nbRearCameraModules':6,
-      'Main Camera': {'_default_':2,'mainCamera.SensorSize':8,'mainCamera.FocalLength':0,'mainCamera.MaxAperture':6,'mainCamera.HasOIS':7,'mainCamera.MP':4,'specs.maxFPS':10},
-      'Zoom Camera 1': {'_default_':3,'teleCamera.MP':5,'teleCamera.FocalLength':7,'teleCamera.OpticalZoom':10,'teleCamera.MaxAperture':8,'teleCamera.SensorSize':8,'teleCamera.HasOIS':6}
-    },
-    'Selfie Cameras': {
-      '_default_':8,
-      'Selfie Camera 1':{'_default_':3,'selfieCamera.MP':5,'selfieCamera.FocalLength':0,'selfieCamera.MaxAperture':6,'selfieCamera.SensorSize':6,'selfieCamera.HasOIS':5}
-    },
-    'Battery':{'specs.maxChargingPower':6,'specs.wirelessCharging':2},
-    'Body':{'_default_':1,'specs.thickness':4,'specs.weight':4,'specs.ipCertification':4,'specs.gorillaGlassVersion':4},
-    'Screen':{'_default_':1,'specs.screenToBodyRatio':10,'specs.hasOLED':8},
-    'Software':{'specs.hasGoogleServices':5},
-    'Connectivity':{'specs.usbC':5}
-  }
-}
 
 var allKeys = getallKeys()
 var keyProperties = getKeyProperties(scoresAreAbsolute)
