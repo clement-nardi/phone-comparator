@@ -88,6 +88,11 @@ const sortedKeysWithCategories = [
   { key: 'specs.maxChargingPower', categories: ['Specifications', 'Battery'] },
   { key: 'specs.wirelessCharging', categories: ['Specifications', 'Battery'] },
   { key: 'specs.usbC', categories: ['Specifications', 'Connectivity'] },
+  { key: 'cameraReview.mobile.overallScore' },
+  { key: 'cameraReview.mobile.zoom.overallScore' },
+  { key: 'cameraReview.mobile.zoom.tele' },
+  { key: 'cameraReview.mobile.zoom.wide' },
+  { key: 'cameraReview.mobile.photo.overallScore' },
 ]
 
 var keyWeights  = {
@@ -415,14 +420,26 @@ function getKeyProperties(scoresAreAbsolute) {
         case 'MP':
           return pm.megapixels
         case 'FocalLength':
+          if (!pm.focalLength && pm.opticalZoom) {
+            return pm.opticalZoom * 25.98751
+          }
           return pm.focalLength
         case 'OpticalZoom':
+          if (pm.focalLength && !pm.opticalZoom) {
+            return pm.focalLength / 25.98751
+          }
           return pm.opticalZoom
         case 'MaxAperture':
           return pm.maxAperture
         case 'SensorSize':
+          if (!pm.sensorSize && pm.pixelSize) {
+            return pm.pixelSize * Math.sqrt(pm.megapixels) / 12.0553
+          }
           return pm.sensorSize
         case 'PixelSize':
+          if (pm.sensorSize && !pm.pixelSize) {
+            return pm.sensorSize / Math.sqrt(pm.megapixels) * 12.0553
+          }
           return pm.pixelSize
         case 'HasOIS':
           return pm.OIS
