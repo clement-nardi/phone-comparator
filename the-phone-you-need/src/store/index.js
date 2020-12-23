@@ -432,12 +432,12 @@ function getKeyProperties(scoresAreAbsolute) {
         case 'MaxAperture':
           return pm.maxAperture
         case 'SensorSize':
-          if (!pm.sensorSize && pm.pixelSize) {
+          if (!pm.sensorSize && pm.pixelSize && pm.megapixels) {
             return pm.pixelSize * Math.sqrt(pm.megapixels) / 12.0553
           }
           return pm.sensorSize
         case 'PixelSize':
-          if (pm.sensorSize && !pm.pixelSize) {
+          if (pm.sensorSize && !pm.pixelSize && pm.megapixels) {
             return pm.sensorSize / Math.sqrt(pm.megapixels) * 12.0553
           }
           return pm.pixelSize
