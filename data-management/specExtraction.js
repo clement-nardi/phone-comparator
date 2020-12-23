@@ -154,7 +154,7 @@ function extractCameraModuleSpecs(module) {
   var moduleSpecs = {}
   //console.log('cam module: ' + module)
   var match
-  if (match = module.match(/([\d.]+) MP/)) { moduleSpecs['megapixels'] = parseFloat(match[1]) }
+  if (match = module.match(/([\d.]+) ?MP/)) { moduleSpecs['megapixels'] = parseFloat(match[1]) }
   if (match = module.match(/f\/([\d.]+)/)) { moduleSpecs['maxAperture'] = parseFloat(match[1]) }
   if (match = module.match(/(\d+)mm/)) { moduleSpecs['focalLength'] = parseFloat(match[1]) }
   if (match = module.match(/([\d.]+)x optical/)) { moduleSpecs['opticalZoom'] = parseFloat(match[1]) }

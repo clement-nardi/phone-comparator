@@ -9,5 +9,24 @@
                 }
             ]
         }
+    },
+    "Huawei Mate 40 Pro": {
+        "specs": {
+            "rearCameraModules": [
+                {
+                },
+                {
+                    "sensorSize": 0.2808988764
+                },
+                {
+                    "sensorSize": 0.64935064935
+                }
+            ],
+            "frontCameraModules": [
+                {
+                    "sensorSize": 0.357142857142
+                }
+            ]
+        }
     }
 }
