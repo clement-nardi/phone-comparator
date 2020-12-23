@@ -19,6 +19,9 @@ function extractSpecsFromBody(body) {
     switch (key) {
     case 'displaytype':
       specs['hasOLED'] = value.match(/oled/i)?true:false
+      if (! specs['refreshRate']) {
+        extractNumber(specs, 'refreshRate', value, /(\d+)Hz/, 1)
+      }
       break
     case 'os':
       if (value.includes('Android')) {
@@ -76,7 +79,9 @@ function extractSpecsFromBody(body) {
       extractNumber(specs, 'ppi', value, /([\d.]+) ppi/, 1)
       break
     case 'displayother':
-      extractNumber(specs, 'refreshRate', value, /(\d+)Hz/, 1)
+      if (! specs['refreshRate']) {
+        extractNumber(specs, 'refreshRate', value, /(\d+)Hz/, 1)
+      }
       break
     case 'cam1modules':
       specs['rearCameraModules'] = extractCameraSpecs(value)

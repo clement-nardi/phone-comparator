@@ -1,8 +1,38 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import allPhones from '../../../data-management/allSpecs.json'
+import patch from '../../../data-management/patch.json'
 
 Vue.use(Vuex)
+
+
+function applyPatch() {
+  let phonesPerName = {}
+  for (let phone of allPhones) {
+    phonesPerName[phone['name']] = phone
+  }
+
+  for (let p in patch) {
+    console.log('applying patch to ' + p)
+    let ph = phonesPerName[p]
+    let pa = patch[p]
+    patchObject(ph, pa)
+  }
+}
+
+
+function patchObject(object, patch) {
+  for (let id in patch) {
+    if (typeof patch[id] !== 'object') {
+      object[id] = patch[id]
+    } else {
+      patchObject(object[id], patch[id])
+    }
+  }
+}
+
+applyPatch()
+
 
 const scoresAreAbsolute = true
 

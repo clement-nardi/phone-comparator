@@ -1,0 +1,13 @@
+{
+    "Huawei P40 Pro": {
+        "specs": {
+            "rearCameraModules": [
+                {
+                },
+                {
+                    "sensorSize": 0.2808988764
+                }
+            ]
+        }
+    }
+}
