@@ -40,6 +40,7 @@ const scoresAreAbsolute = true
 const sortedKeysWithCategories = [
   { key: 'brand', categories: ['Designation'] },
   { key: 'name', categories: ['Designation'] },
+  { key: 'releaseDate', categories: ['Designation'] },
   { key: 'price', categories: ['Pricing'] },
   { key: 'nbOffers', categories: ['Pricing'] },
   { key: 'Score', categories: ['Score'] },
@@ -117,6 +118,8 @@ const sortedKeysWithCategories = [
   { key: 'specs.enduranceRating', categories: ['Specifications', 'Battery'] },
   { key: 'specs.maxChargingPower', categories: ['Specifications', 'Battery'] },
   { key: 'specs.wirelessCharging', categories: ['Specifications', 'Battery'] },
+  { key: 'specs.has5G', categories: ['Specifications', 'Connectivity'] },
+  { key: 'specs.hasDualSim', categories: ['Specifications', 'Connectivity'] },
   { key: 'specs.usbC', categories: ['Specifications', 'Connectivity'] },
   { key: 'cameraReview.mobile.overallScore' },
   { key: 'cameraReview.mobile.zoom.overallScore' },
@@ -232,7 +235,9 @@ const excludedKeys = [
   'cameraReview.selfie.link',
   'cameraReview.audio.link',
   'cameraReview.display.link',
-  'link'
+  'link',
+  'specs.releasedOn.year',
+  'specs.releasedOn.month'
 ]
 
 
@@ -296,6 +301,25 @@ function getKeyProperties(scoresAreAbsolute) {
     props[v] = {filters: {keepEmpty: true}}
   }
   props['name']['width'] = '100px'
+  props['releaseDate']['width'] = '46px'
+  props['releaseDate']['getLabel'] = (phone) => {
+    if (phone['specs']) {
+      const date = phone['specs']['releasedOn']
+      if (date) {
+        return date['year'] + '/' + date['month'].toString().padStart(2, '0')
+      }
+    }
+    return ''
+  }
+  props['releaseDate']['getValue'] = (phone) => {
+    if (phone['specs']) {
+      const date = phone['specs']['releasedOn']
+      if (date) {
+        return date['year'] * 12 + date['month']
+      }
+    }
+    return undefined
+  }
   props['name']['getValue'] = (phone) => {
     var name = phone['name'].split(' ').slice(1).join(' ')
     return name
@@ -727,10 +751,10 @@ function getFilters(keyProperties) {
   let filters = []
   for (let k in keyProperties) {
     let p = keyProperties[k]
-    if (p.filters['min'] && p.filters['min'] != p.minValue) {
+    if (Object.prototype.hasOwnProperty.call(p.filters, 'min') && p.filters['min'] != p.minValue) {
       filters.push({key:k,type:'min',value:p.filters['min']})
     }
-    if (p.filters['max'] && p.filters['max'] != p.maxValue) {
+    if (Object.prototype.hasOwnProperty.call(p.filters, 'max') && p.filters['max'] != p.maxValue) {
       filters.push({key:k,type:'max',value:p.filters['max']})
     }
     if (p.filters['keepEmpty'] == false) {

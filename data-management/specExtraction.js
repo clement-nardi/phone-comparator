@@ -5,7 +5,7 @@ module.exports = {extractSpecsFromBody: extractSpecsFromBody}
 function extractSpecsFromBody(body) {
 
   var root = HTMLParser.parse(body)
-  var specs = {}
+  var specs = {'has5G': false}
 
   for (var el of root.querySelectorAll('.nfo')) {
     var dataSpec = el.getAttribute('data-spec')
@@ -15,6 +15,7 @@ function extractSpecsFromBody(body) {
     //console.log(dataSpec + ' (' + label + '): \t' + value)
 
     var key = dataSpec?dataSpec:label
+    var match
 
     switch (key) {
     case 'displaytype':
@@ -31,7 +32,7 @@ function extractSpecsFromBody(body) {
       }
       break
     case 'dimensions':
-      var match = [...value.matchAll(/([\d.]+) x (.*) x (.*) mm/g)].pop()
+      match = [...value.matchAll(/([\d.]+) x (.*) x (.*) mm/g)].pop()
       specs['height'] = parseFloat(match[1])
       specs['width'] = parseFloat(match[2])
       specs['thickness'] = parseFloat(match[3])
@@ -39,15 +40,34 @@ function extractSpecsFromBody(body) {
     case 'build':
       extractNumber(specs, 'gorillaGlassVersion', value, /front \(Gorilla Glass ([\d.]+)/, 1)
       break
+    case 'sim':
+      specs['hasDualSim'] = value.match(/dual/i)?true:false
+      break
+    case 'net5g':
+      specs['has5G'] = true
+      break
+    case 'status':
+      match = value.match(/Released (\d+), (\w+)/)
+      if (match) {
+        let month_alpha = match[2]
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+          'July', 'August', 'September', 'October', 'November', 'December']
+        let month = 1 + months.indexOf(month_alpha)
+        specs['releasedOn'] = {
+          'year': parseInt(match[1]),
+          'month': month
+        }
+      }
+      break
     case 'weight':
       extractNumber(specs, 'weight', value, /([\d.]+)/, 1)
       break
     case 'bodyother':
-      var match = value.match(/IP(\d+)/)
+      match = value.match(/IP(\d+)/)
       if (match) {
         specs['ipCertification'] = parseInt(match[1])
       }
-      break;
+      break
     case 'displaysize':
       specs['screenSize'] = parseFloat(value)
       specs['screenToBodyRatio'] = parseFloat(value.match(/([\d.]+%)/))
@@ -70,7 +90,7 @@ function extractSpecsFromBody(body) {
       extractNumber(specs, 'transistorSize', value, /([\d.]+) nm/, 1)
       break
     case 'displayresolution':
-      var match = value.match(/([\d]+) x ([\d]+) pix/)
+      match = value.match(/([\d]+) x ([\d]+) pix/)
       if (match) {
         let res = [parseInt(match[1]),parseInt(match[2])]
         specs['resolutionWidth'] = Math.min(...res)
@@ -153,15 +173,16 @@ function extractCameraSpecs(value) {
 function extractCameraModuleSpecs(module) {
   var moduleSpecs = {}
   //console.log('cam module: ' + module)
-  var match
-  if (match = module.match(/([\d.]+) ?MP/)) { moduleSpecs['megapixels'] = parseFloat(match[1]) }
-  if (match = module.match(/f\/([\d.]+)/)) { moduleSpecs['maxAperture'] = parseFloat(match[1]) }
-  if (match = module.match(/(\d+)mm/)) { moduleSpecs['focalLength'] = parseFloat(match[1]) }
-  if (match = module.match(/([\d.]+)x optical/)) { moduleSpecs['opticalZoom'] = parseFloat(match[1]) }
-  if (match = module.match(/1\/([\d.]+)"/)) { moduleSpecs['sensorSize'] = 1/parseFloat(match[1]) }
-  if (match = module.match(/([\d.]+)µm/)) { moduleSpecs['pixelSize'] = parseFloat(match[1]) }
-  moduleSpecs['autofocus'] = module.includes('omnidirectional')?'omniPD':
-                             module.includes('PDAF')?'PD':undefined
+  extractNumber(moduleSpecs, 'megapixels', module, /([\d.]+) ?MP/, 1)
+  extractNumber(moduleSpecs, 'maxAperture', module, /f\/([\d.]+)/, 1)
+  extractNumber(moduleSpecs, 'focalLength', module, /(\d+)mm/, 1)
+  extractNumber(moduleSpecs, 'opticalZoom', module, /([\d.]+)x optical/, 1)
+  extractNumber(moduleSpecs, 'sensorSize', module, /1\/([\d.]+)"/, 1)
+  moduleSpecs['sensorSize'] = 1/moduleSpecs['sensorSize']
+  extractNumber(moduleSpecs, 'pixelSize', module, /([\d.]+)µm/, 1)
+  moduleSpecs['autofocus'] = 
+    module.includes('omnidirectional')?'omniPD':
+      module.includes('PDAF')?'PD':undefined
   moduleSpecs['OIS'] = module.includes('OIS')
   return moduleSpecs
 }

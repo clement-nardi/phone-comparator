@@ -23,7 +23,19 @@
         </div>
       </div>
       <br>
-      <span>Keep empty: </span><input type="checkbox" v-model="keepEmpty"/>
+    </div>
+    <div ref="booleanFilter">
+      <span>
+        Filter values: 
+        <input type="checkbox" v-model="keepTrue">true
+        <input type="checkbox" v-model="keepFalse">false
+      </span>
+    </div>
+    <div>
+      <span>
+        Keep empty: 
+        <input type="checkbox" v-model="keepEmpty"/>
+      </span>
     </div>
   </div>
 </template>
@@ -55,6 +67,38 @@ export default {
       set: function (newValue) {
         let k = this.$store.state.configKey
         this.$store.commit('applyFilter', {key: k, filterType: 'keepEmpty', filterValue: newValue})
+      }
+    },
+    keepTrue: {
+      get: function () {
+        let k = this.$store.state.configKey
+        const filters = this.$store.getters.getFilters
+        for (let f of filters) {
+          if (f.key == k && f.type == 'max') {
+            return false
+          }
+        }
+        return true
+      },
+      set: function (newValue) {
+        let k = this.$store.state.configKey
+        this.$store.commit('applyFilter', {key: k, filterType: 'max', filterValue: newValue})
+      }
+    },
+    keepFalse: {
+      get: function () {
+        let k = this.$store.state.configKey
+        const filters = this.$store.getters.getFilters
+        for (let f of filters) {
+          if (f.key == k && f.type == 'min') {
+            return false
+          }
+        }
+        return true
+      },
+      set: function (newValue) {
+        let k = this.$store.state.configKey
+        this.$store.commit('applyFilter', {key: k, filterType: 'min', filterValue: !newValue})
       }
     },
     key() {
@@ -100,6 +144,10 @@ export default {
           const numberFilter = this.$refs['numberFilter']
           if (numberFilter) {
             numberFilter.style.display = showSlider?'contents':'none'
+          }
+          const booleanFilter = this.$refs['booleanFilter']
+          if (booleanFilter) {
+            booleanFilter.style.display = (typeof max == 'boolean')?'contents':'none'
           }
         }
       }
