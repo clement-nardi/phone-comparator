@@ -33,9 +33,11 @@ function extractSpecsFromBody(body) {
       break
     case 'dimensions':
       match = [...value.matchAll(/([\d.]+) x (.*) x (.*) mm/g)].pop()
-      specs['height'] = parseFloat(match[1])
-      specs['width'] = parseFloat(match[2])
-      specs['thickness'] = parseFloat(match[3])
+      if (match) {
+        specs['height'] = parseFloat(match[1])
+        specs['width'] = parseFloat(match[2])
+        specs['thickness'] = parseFloat(match[3])
+      }
       break
     case 'build':
       extractNumber(specs, 'gorillaGlassVersion', value, /front \(Gorilla Glass ([\d.]+)/, 1)

@@ -38,9 +38,14 @@ export default {
           container.style.right = ''
         }
         container.style.top = top-(this.below?-20:20) + 'px'
+        
       } else {
         container.style.visibility = 'hidden'
       }
+    },
+    hideTooltip() {
+      var container = document.getElementById('tooltip')
+      container.style.visibility = 'hidden'
     }
   }
 }
