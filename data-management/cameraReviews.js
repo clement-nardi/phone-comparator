@@ -13,7 +13,7 @@ async function extractCameraReviewsFromBody(body) {
 
   const smartphones = JSON.parse(body.substring(
     body.indexOf('data: {smartphones:') + 19,
-    body.indexOf(',cameras:{')
+    body.indexOf(',cameras:[')
   ))
   console.log(smartphones)
 
@@ -164,6 +164,10 @@ exports.insertReviewsInPhones = (phones, reviews) => {
   let count = 0
   for (let review of reviews) {
     let name = review.name
+    if (!name) {
+      console.warn('no name for review: ' + review)
+      continue
+    }
     if (!phonesByName[stripStr(name)]) {
       let match = name.match(/(.*) (5G|4G|ThinQ)/)
       if (match) {
