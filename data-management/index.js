@@ -1,10 +1,10 @@
-var {extractSpecsFromBody} = require('./specExtraction')
-var {fetchBodyWithCache} = require('./httpCache')
-var {fetchPhoneList} = require('./prices')
-var {findAllSpecs} = require('./specFinder')
-var {fetchCameraReviews, insertReviewsInPhones} = require('./cameraReviews')
-var fs = require('fs').promises
-var moment = require('moment')
+import {extractSpecsFromBody} from './specExtraction.js'
+import {fetchBodyWithCache} from './httpCache.js'
+import {fetchPhoneList} from './prices.js'
+import {findAllSpecs} from './specFinder.js'
+import {fetchCameraReviews, insertReviewsInPhones} from './cameraReviews.js'
+import fs from 'fs/promises'
+import moment from 'moment'
 
 fetchPhoneList()
   .then(list => {

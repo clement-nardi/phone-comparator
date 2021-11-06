@@ -11,8 +11,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\data-management\\index.js",
-            "cwd": "${workspaceFolder}\\data-management"
+            "program": "${workspaceFolder}/data-management/index.js",
+            "cwd": "${workspaceFolder}/data-management"
         }
     ]
 }

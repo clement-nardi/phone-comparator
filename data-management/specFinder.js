@@ -1,12 +1,5 @@
-var {fetchBodyWithCache} = require('./httpCache')
-var HTMLParser = require('node-html-parser')
-var {extractSpecsFromBody} = require('./specExtraction')
-
-module.exports = {
-  findAllSpecs: findAllSpecs,
-  findSpecs: findSpecs,
-  searchSpecs: searchSpecs
-}
+import {fetchBodyWithCache} from './httpCache.js'
+import HTMLParser from 'node-html-parser'
 
 function findAllSpecs(phoneList) {
   var count = 0
@@ -24,7 +17,7 @@ function findSpecs(phone) {
     names = names.concat(name.split(' - '))
   }
   for (var pattern of [/(.*) \(.*\)/, /(.*) Dual Sim/i]) {
-    match = name.match(pattern)
+    let match = name.match(pattern)
     if (match) {
       names.push(match[1])
     }
@@ -78,7 +71,7 @@ function stripStr(str) {
   return str.replace(/[ \-()]/g, '').toLowerCase()
 }
 
-findSpecsRec = (names, i, best) => {
+function findSpecsRec(names, i, best) {
   if (i >= names.length) { return best }
   return searchSpecs(names[i])
   .then(results => {
@@ -105,7 +98,7 @@ function searchSpecs(name) {
   })
 }
 
-analyseSearchResults = (body) => {
+function analyseSearchResults(body) {
   var root = HTMLParser.parse(body)
   var results = []
 
@@ -124,4 +117,11 @@ analyseSearchResults = (body) => {
     }
   }
   return results
+}
+
+
+export {
+  findAllSpecs,
+  findSpecs,
+  searchSpecs
 }

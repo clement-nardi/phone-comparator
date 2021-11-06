@@ -1,6 +1,4 @@
-var HTMLParser = require('node-html-parser')
-
-module.exports = {extractSpecsFromBody: extractSpecsFromBody}
+import HTMLParser from 'node-html-parser'
 
 function extractSpecsFromBody(body) {
 
@@ -76,6 +74,9 @@ function extractSpecsFromBody(body) {
       break
     case 'cpu':
       var cpuVersions = [...value.matchAll(/\([^)]*\)/g)]
+      if (cpuVersions.length == 0) {
+        cpuVersions = [...value.matchAll(/\([^)]*/g)]
+      }
       if (cpuVersions.length > 0) {
         var coreGroups = [...cpuVersions[0][0].matchAll(/(\d)x([\d.]+) GHz/g)]
         var nbCores = 0
@@ -188,3 +189,5 @@ function extractCameraModuleSpecs(module) {
   moduleSpecs['OIS'] = module.includes('OIS')
   return moduleSpecs
 }
+
+export {extractSpecsFromBody}

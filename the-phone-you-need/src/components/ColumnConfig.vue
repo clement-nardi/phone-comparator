@@ -43,7 +43,7 @@
 <script>
 //import LabelWithTooltip from './LabelWithTooltip'
 import noUiSlider from 'nouislider'
-import 'nouislider/distribute/nouislider.css'
+import 'nouislider/dist/nouislider.css'
 var currentKey = undefined
 
 export default {

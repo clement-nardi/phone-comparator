@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Webpage to find the smartphone of your dreams",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "jest"
   },
@@ -21,16 +22,17 @@
   },
   "homepage": "https://github.com/clement-nardi/phone-comparator#readme",
   "dependencies": {
-    "async-mutex": "^0.2.4",
-    "filenamify": "^4.1.0",
+    "async-mutex": "^0.3.2",
+    "filenamify": "^5.0.2",
     "https-proxy-agent": "^5.0.0",
-    "moment": "^2.27.0",
-    "node-fetch": "^2.6.1",
-    "node-html-parser": "^1.2.20",
+    "moment": "^2.29.1",
+    "node-fetch": "^3.0.0",
+    "abort-controller": "^3.0.0",
+    "node-html-parser": "^5.1.0",
     "await-semaphore": "^0.1.3"
   },
   "devDependencies": {
-    "eslint": "^7.14.0",
-    "jest": "^26.1.0"
+    "eslint": "^8.2.0",
+    "jest": "^27.3.1"
   }
 }

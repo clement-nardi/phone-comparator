@@ -1,7 +1,7 @@
-var {fetchBodyWithCache} = require('./httpCache')
-var HTMLParser = require('node-html-parser')
+import {fetchBodyWithCache} from './httpCache.js'
+import HTMLParser from 'node-html-parser'
 
-exports.fetchPhoneList = () => {
+function fetchPhoneList() {
   return fetchBodyWithCache('https://www.i-comparateur.com/comparer-prix-x40c0062b0.htm')
   .then(body => {
     return extractPhoneListFromBody(body)
@@ -14,7 +14,7 @@ function extractPhoneListFromBody(body) {
 
   var table = root.querySelector('.TList')
   for (var child of table.childNodes) {
-    if (child.tagName === 'tr') {
+    if (child.tagName === 'TR') {
       var la = child.querySelector('.La')
       var laText = la.text
       var prText = child.querySelector('.Pr').text
@@ -28,3 +28,5 @@ function extractPhoneListFromBody(body) {
   }
   return phoneList
 }
+
+export {fetchPhoneList}

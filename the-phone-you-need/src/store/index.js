@@ -16,7 +16,11 @@ function applyPatch() {
     console.log('applying patch to ' + p)
     let ph = phonesPerName[p]
     let pa = patch[p]
-    patchObject(ph, pa)
+    if (ph) {
+      patchObject(ph, pa)
+    } else {
+      console.log('unknown phone..')
+    }
   }
 }
 

@@ -1,7 +1,7 @@
-var {fetchBodyWithCache} = require('./httpCache')
-var HTMLParser = require('node-html-parser')
+import {fetchBodyWithCache} from './httpCache.js'
+import HTMLParser from 'node-html-parser'
 
-exports.fetchCameraReviews = () => {
+function fetchCameraReviews() {
   return fetchBodyWithCache('https://www.dxomark.com/rankings/#smartphones')
   .then(body => {
     return extractCameraReviewsFromBody(body)
@@ -123,9 +123,7 @@ function extractSubScrores(body) {
   return subScores
 }
 
-exports.extractSubScrores = extractSubScrores
-
-exports.insertReviewsInPhones = (phones, reviews) => {
+function insertReviewsInPhones(phones, reviews) {
   let phonesByName = {}
   for (let phone of phones) {
     let name = phone.name
@@ -191,3 +189,5 @@ exports.insertReviewsInPhones = (phones, reviews) => {
 function stripStr(str) {
   return str.replace(/[ \-()]/g, '').toLowerCase()
 }
+
+export {fetchCameraReviews, extractSubScrores, insertReviewsInPhones}
