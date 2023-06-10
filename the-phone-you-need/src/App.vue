@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Settings />
+    <GlobalSettings />
     <div id="tooltip"/>
     <PhoneTable />
     <ColumnConfig />
@@ -11,7 +11,7 @@
 <script>
 import PhoneTable from './components/PhoneTable.vue'
 import ColumnConfig from './components/ColumnConfig.vue'
-import Settings from './components/Settings.vue'
+import GlobalSettings from './components/GlobalSettings.vue'
 import WeightsEditor from './components/WeightsEditor.vue'
 
 export default {
@@ -19,7 +19,7 @@ export default {
   components: {
     PhoneTable,
     ColumnConfig,
-    Settings,
+    GlobalSettings,
     WeightsEditor
   }
 }

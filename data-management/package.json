@@ -22,14 +22,14 @@
   },
   "homepage": "https://github.com/clement-nardi/phone-comparator#readme",
   "dependencies": {
+    "abort-controller": "^3.0.0",
     "async-mutex": "^0.3.2",
+    "await-semaphore": "^0.1.3",
     "filenamify": "^5.0.2",
     "https-proxy-agent": "^5.0.0",
     "moment": "^2.29.1",
     "node-fetch": "^3.0.0",
-    "abort-controller": "^3.0.0",
-    "node-html-parser": "^5.1.0",
-    "await-semaphore": "^0.1.3"
+    "node-html-parser": "^6.1.5"
   },
   "devDependencies": {
     "eslint": "^8.2.0",

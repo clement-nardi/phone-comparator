@@ -92,7 +92,7 @@ function findSpecsRec(names, i, best) {
 
 function searchSpecs(name) {
   var sSearch = encodeURIComponent(name).replace(/%20/g, '+')
-  return fetchBodyWithCache('https://www.gsmarena.com/res.php3?sSearch=' + sSearch)
+  return fetchBodyWithCache('https://www.gsmarena.com/results.php3?sQuickSearch=yes&sName=' + sSearch)
   .then(body => {
     return analyseSearchResults(body)
   })
@@ -102,18 +102,16 @@ function analyseSearchResults(body) {
   var root = HTMLParser.parse(body)
   var results = []
 
-  for (var el of root.querySelectorAll('.section')) {
-    if (el.text === 'Specs') {
-      var ul = el.parentNode.querySelector('ul')
-      if (el.parentNode.tagName == 'html' || !ul) {
-        return results
-      }
+  for (var el of root.querySelectorAll('.makers')) {
+    var ul = el.parentNode.querySelector('ul')
+    if (el.parentNode.tagName == 'html' || !ul) {
+      return results
+    }
 
-      for (var li of ul.querySelectorAll('li')) {
-        var name = li.structuredText.replace('\n', ' ')
-        var link = li.querySelector('a').getAttribute('href')
-        results.push({name:name, link:link})
-      }
+    for (var li of ul.querySelectorAll('li')) {
+      var name = li.structuredText.replace('\n', ' ')
+      var link = li.querySelector('a').getAttribute('href')
+      results.push({name:name, link:link})
     }
   }
   return results

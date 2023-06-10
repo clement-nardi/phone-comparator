@@ -1,4 +1,4 @@
-const {searchSpecs} = require('./specFinder')
+import {searchSpecs} from './specFinder'
 
 it('search results extraction', () => {
   return testSearch('Crosscall Spider X1', 0)

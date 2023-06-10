@@ -1,5 +1,5 @@
-const {extractSubScrores} = require('./cameraReviews');
-const fs = require('fs')
+import {extractSubScrores} from './cameraReviews'
+import fs from 'fs'
 
 test('subScore extraction from html', () => {
 

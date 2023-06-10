@@ -1,8 +1,9 @@
 import {fetchBodyWithCache} from './httpCache.js'
 import HTMLParser from 'node-html-parser'
+import fs from 'fs'
 
 function fetchCameraReviews() {
-  return fetchBodyWithCache('https://www.dxomark.com/rankings/#smartphones')
+  return fetchBodyWithCache('https://www.dxomark.com/smartphones/')
   .then(body => {
     return extractCameraReviewsFromBody(body)
   })
@@ -10,11 +11,13 @@ function fetchCameraReviews() {
 
 async function extractCameraReviewsFromBody(body) {
   var reviews = []
+  let beginning = "var smartphonesAsJson = "
+  let smartphones_str = body.substring(
+    body.indexOf(beginning) + beginning.length,
+    body.indexOf('}}];') + 3
+  )
 
-  const smartphones = JSON.parse(body.substring(
-    body.indexOf('data: {smartphones:') + 19,
-    body.indexOf(',cameras:[')
-  ))
+  const smartphones = JSON.parse(smartphones_str)
   console.log(smartphones)
 
   reviews = await Promise.all(
@@ -28,11 +31,66 @@ async function buildReview(smartphone) {
   let review = {
     name : smartphone.name,
   }
+  if (smartphone.name == "Google Pixel 7 Pro") {
+    console.log("YEY")
+  }
+
+  let smartphone_url = "https://www.dxomark.com/smartphones/" + smartphone.brand + "/" + smartphone.model.replace(/ /g, "-")
+  console.log(smartphone_url)
+  let body = await fetchBodyWithCache(smartphone_url)
+  var root = HTMLParser.parse(body)
 
   for (let section of ["mobile", "selfie", "audio", "display"]) {
-    if (smartphone[section] && smartphone[section].url) {
+    if (smartphone[section]) {
+      let section_url = ""
+      if (smartphone[section].url) {
+        section_url = smartphone[section].url
+      } else {
+
+        // <div class="col large-9 small-12 tab-content" x-show="tab === 'display'"></div>
+        
+        let d = root.querySelector('div[x-show="tab === \'' + section + '\'"]')
+        let a = null
+        if (d) {
+          a = d.querySelector('.big-buttons a')
+        }
+        if (!a) {
+          a = root.querySelector('.big-buttons a[href*=' + section + ']')
+        }
+        if (!a) {
+          if (section == "selfie") {
+            a = root.querySelector('.big-buttons a[href*=front-camera]')
+          } else if (section == "mobile") {
+            let as = root.querySelectorAll('.big-buttons a[href*=camera]')
+            for (let link of as) {
+              if (link.getAttribute('href').includes('front-camera')) {
+                continue
+              }
+              a = link
+              break
+            }
+          }
+        }
+        if (!a) {
+          let as = root.querySelectorAll('.big-buttons a')
+          console.log("possible urls:")
+          for (let i = 0; i < as.length; i++) {
+            console.log(as[i].getAttribute('href'))
+          }
+          console.log("toto")
+        }
+
+        if (a) {
+          section_url = a.getAttribute('href')
+        } else {
+          console.log("Unable to find url for " + section + " in " + smartphone_url)
+          return {}
+        }
+       
+        console.log(section_url)
+      }
       //console.log(smartphone[section].url)
-      let sectionBody = await fetchBodyWithCache(smartphone[section].url)
+      let sectionBody = await fetchBodyWithCache(section_url)
       review[section] = extractSubScrores(sectionBody)
       review[section].link = smartphone[section].url
 
@@ -42,16 +100,16 @@ async function buildReview(smartphone) {
 
     }
   }
-  if (smartphone.mobileScore) {
+  if (smartphone.mobileScore && review.mobile) {
     review.mobile.overallScore = smartphone.mobileScore
   }
-  if (smartphone.selfieScore) {
+  if (smartphone.selfieScore && review.selfie) {
     review.selfie.overallScore = smartphone.selfieScore
   }
-  if (smartphone.audioScore) {
+  if (smartphone.audioScore && review.audio) {
     review.audio.overallScore = smartphone.audioScore
   }
-  if (smartphone.displayScore) {
+  if (smartphone.displayScore && review.display) {
     review.display.overallScore = smartphone.displayScore
   }
   return review
@@ -108,13 +166,18 @@ function extractSubScrores(body) {
 
   if (Object.keys(subScores).length == 0) {
     var root = HTMLParser.parse(body)
-    for (var el of root.querySelectorAll('.subscoreHeading')) {
-      var classes = el.classNames.filter(c => c != "hide-best")
-      var score = el.querySelector('.currentDeviceSubScore').text
-      if (!subScores[classes[2]]) {
-        subScores[classes[2]] = {}
+    for (var el of root.querySelectorAll('.summaryBar')) {
+      var title = el.querySelector('.subscoreTitle>a').getAttribute('href').substring(1).split('-')
+      var score = el.querySelector('.currentScore').text
+      if (!subScores[title[0]]) {
+        subScores[title[0]] = {}
       }
-      subScores[classes[2]][classes[1]] = parseFloat(score)
+      subScores[title[0]][title[1]] = parseFloat(score)
+    }
+    for (var el of root.querySelectorAll('.subscores')) {
+      var title = el.querySelector('a').getAttribute('href').substring(1)
+      var score = el.querySelector('span').text
+      subScores[title].overallScore = parseFloat(score)
     }
   }
 

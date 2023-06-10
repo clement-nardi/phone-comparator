@@ -28,6 +28,11 @@ function extractSpecsFromBody(body) {
         specs['androidVersion'] = parseFloat(value.replace('Android ',''))
         specs['hasGoogleServices'] = !value.includes('no Google Play Services')
       }
+      if (value.includes('EMUI')) {
+        specs['os'] = 'Android'
+        specs['androidVersion'] = parseFloat(value.match(/EMUI (\d+)/)[1])
+        specs['hasGoogleServices'] = !value.includes('no Google Play Services')
+      }
       break
     case 'dimensions':
       match = [...value.matchAll(/([\d.]+) x (.*) x (.*) mm/g)].pop()
@@ -178,7 +183,8 @@ function extractCameraModuleSpecs(module) {
   //console.log('cam module: ' + module)
   extractNumber(moduleSpecs, 'megapixels', module, /([\d.]+) ?MP/, 1)
   extractNumber(moduleSpecs, 'maxAperture', module, /f\/([\d.]+)/, 1)
-  extractNumber(moduleSpecs, 'focalLength', module, /(\d+)mm/, 1)
+  extractNumber(moduleSpecs, 'focalLength', module, /([\d.]+)mm/, 1)
+  extractNumber(moduleSpecs, 'fieldOfView', module, /([\d.]+)[°˚]/, 1)
   extractNumber(moduleSpecs, 'opticalZoom', module, /([\d.]+)x optical/, 1)
   extractNumber(moduleSpecs, 'sensorSize', module, /1\/([\d.]+)"/, 1)
   moduleSpecs['sensorSize'] = 1/moduleSpecs['sensorSize']
@@ -187,6 +193,9 @@ function extractCameraModuleSpecs(module) {
     module.includes('omnidirectional')?'omniPD':
       module.includes('PDAF')?'PD':undefined
   moduleSpecs['OIS'] = module.includes('OIS')
+  if (! moduleSpecs['focalLength'] && moduleSpecs['fieldOfView']) {
+    moduleSpecs['focalLength'] = 18/Math.tan(moduleSpecs['fieldOfView']/180*Math.PI/2)
+  } 
   return moduleSpecs
 }
 

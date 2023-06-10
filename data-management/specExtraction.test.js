@@ -1,5 +1,5 @@
-const {extractSpecsFromBody} = require('./specExtraction');
-const fs = require('fs')
+import {extractSpecsFromBody} from './specExtraction'
+import fs from 'fs/promises'
 
 const testDataDir = './testData/'
 
