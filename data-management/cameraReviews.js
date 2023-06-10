@@ -31,12 +31,9 @@ async function buildReview(smartphone) {
   let review = {
     name : smartphone.name,
   }
-  if (smartphone.name == "Google Pixel 7 Pro") {
-    console.log("YEY")
-  }
 
   let smartphone_url = "https://www.dxomark.com/smartphones/" + smartphone.brand + "/" + smartphone.model.replace(/ /g, "-")
-  console.log(smartphone_url)
+  // console.log(smartphone_url)
   let body = await fetchBodyWithCache(smartphone_url)
   var root = HTMLParser.parse(body)
 
@@ -71,23 +68,20 @@ async function buildReview(smartphone) {
             }
           }
         }
-        if (!a) {
-          let as = root.querySelectorAll('.big-buttons a')
-          console.log("possible urls:")
-          for (let i = 0; i < as.length; i++) {
-            console.log(as[i].getAttribute('href'))
-          }
-          console.log("toto")
-        }
 
         if (a) {
           section_url = a.getAttribute('href')
         } else {
           console.log("Unable to find url for " + section + " in " + smartphone_url)
+          let as = root.querySelectorAll('.big-buttons a')
+          console.log("possible urls:")
+          for (let i = 0; i < as.length; i++) {
+            console.log(as[i].getAttribute('href'))
+          }
           return {}
         }
        
-        console.log(section_url)
+        //console.log(section_url)
       }
       //console.log(smartphone[section].url)
       let sectionBody = await fetchBodyWithCache(section_url)

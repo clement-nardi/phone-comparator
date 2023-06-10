@@ -16,7 +16,7 @@ function findSpecs(phone) {
   if (name.includes(' - ')) {
     names = names.concat(name.split(' - '))
   }
-  for (var pattern of [/(.*) \(.*\)/, /(.*) Dual Sim/i]) {
+  for (var pattern of [/(.*) \(.*\)/, /(.*) Dual Sim/i, /(.*) [0-9.]+"/]) {
     let match = name.match(pattern)
     if (match) {
       names.push(match[1])
@@ -24,6 +24,10 @@ function findSpecs(phone) {
   }
   return findSpecsRec(names,0,[])
   .then(specs => {
+
+  if (names[0].includes('Samsung Galaxy Tab S8 11')) {
+    console.log(names)
+  }
     for (var spec of specs) {
       rateSpec(spec, names)
     }
@@ -59,8 +63,17 @@ function rateSpec(spec, names) {
       spec.score = 60 - i
       return
     }
-
   }
+  let a = names[0].toLowerCase()
+  let b = spec.name.toLowerCase()
+  let max = Math.min(a.length, b.length)
+  let n = 0
+  for (; n < max; n++) {
+    if (a[n] != b[n]) {
+      break
+    }
+  }
+  spec.score = n
 }
 
 function strEqual(str1, str2) {

@@ -1,8 +1,17 @@
 import {fetchBodyWithCache} from './httpCache.js'
 import HTMLParser from 'node-html-parser'
 
-function fetchPhoneList() {
-  return fetchBodyWithCache('https://www.i-comparateur.com/comparer-prix-x40c0062b0.htm')
+function fetchPhoneList(type) {
+  let url = null
+  switch (type) {
+    case 'phones':
+      url = 'https://www.i-comparateur.com/comparer-prix-x40c0062b0.htm'
+      break
+    case 'tablets':
+      url = 'https://www.i-comparateur.com/comparer-prix-x40c0040b0.htm'
+      break
+  }
+  return fetchBodyWithCache(url)
   .then(body => {
     return extractPhoneListFromBody(body)
   })

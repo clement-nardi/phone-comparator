@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table>
+    <table width="1600px">
       <colgroup>
         <col />
         <col v-for="k in this.$store.state.allKeys"
@@ -103,7 +103,6 @@ export default {
 <style scoped>
 table {
   table-layout: fixed;
-  width: 2800px;
   border-collapse: collapse;
 }
 th {

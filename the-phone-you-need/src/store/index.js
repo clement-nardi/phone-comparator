@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import allPhones from '../../../data-management/allSpecs.json'
+import allPhones from '../../../data-management/tablets-specs.json'
 import patch from '../../../data-management/patch.json'
 
 Vue.use(Vuex)
