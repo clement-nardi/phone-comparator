@@ -4,7 +4,7 @@ import filenamify from 'filenamify'
 import fs from 'fs/promises'
 import oldFs from 'fs'
 import {Mutex} from 'async-mutex'
-import HttpsProxyAgent from 'https-proxy-agent'
+import {HttpsProxyAgent} from 'https-proxy-agent'
 import {Semaphore} from 'await-semaphore'
 
 const cacheDir = './httpCache/'

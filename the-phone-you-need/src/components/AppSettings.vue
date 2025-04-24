@@ -19,7 +19,7 @@
 
 <script>
 export default {
-  name: 'Settings',
+  name: 'AppSettings',
   //components: {LabelWithTooltip},
   props: {
   },

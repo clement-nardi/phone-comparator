@@ -1,5 +1,6 @@
-import {fetchBodyWithCache} from './httpCache.js'
+import { fetchBodyWithCache } from './httpCache.js'
 import HTMLParser from 'node-html-parser'
+import crypto from 'crypto'
 
 function findAllSpecs(phoneList) {
   var count = 0
@@ -22,14 +23,14 @@ function findSpecs(phone) {
       names.push(match[1])
     }
   }
-  return findSpecsRec(names,0,[])
-  .then(specs => {
-    for (var spec of specs) {
-      rateSpec(spec, names)
-    }
-    phone['searchResults'] = specs.sort((a,b) => {return b.score - a.score})
-    return phone
-  })
+  return findSpecsRec(names, 0, [])
+    .then(specs => {
+      for (var spec of specs) {
+        rateSpec(spec, names)
+      }
+      phone['searchResults'] = specs.sort((a, b) => { return b.score - a.score })
+      return phone
+    })
 }
 
 function rateSpec(spec, names) {
@@ -74,32 +75,69 @@ function stripStr(str) {
 function findSpecsRec(names, i, best) {
   if (i >= names.length) { return best }
   return searchSpecs(names[i])
-  .then(results => {
-    //console.log('try ' + (i+1) + '/' + names.length + ': ' + names[i])
-    //console.log(results)
-    if (results.length === 1) {
-      return results
-    } else if (results.length === 0) {
-      return findSpecsRec(names, i+1, best)
-    } else {
-      if (results.length < best.length || best.length === 0) {
-        best = results
+    .then(results => {
+      //console.log('try ' + (i+1) + '/' + names.length + ': ' + names[i])
+      //console.log(results)
+      if (results.length === 1) {
+        return results
+      } else if (results.length === 0) {
+        return findSpecsRec(names, i + 1, best)
+      } else {
+        if (results.length < best.length || best.length === 0) {
+          best = results
+        }
+        return findSpecsRec(names, i + 1, best)
       }
-      return findSpecsRec(names, i+1, best)
-    }
-  })
+    })
 }
 
 function searchSpecs(name) {
   var sSearch = encodeURIComponent(name).replace(/%20/g, '+')
   return fetchBodyWithCache('https://www.gsmarena.com/res.php3?sSearch=' + sSearch)
-  .then(body => {
-    return analyseSearchResults(body)
-  })
+    .then(body => {
+      return analyseSearchResults(body)
+    })
 }
 
-function analyseSearchResults(body) {
-  var root = HTMLParser.parse(body)
+async function decryptData(t, e, n) { 
+  const c = function (t) { 
+    const e = atob(t), n = new ArrayBuffer(e.length), r = new Uint8Array(n); 
+    for (let t = 0; t < e.length; t++)r[t] = e.charCodeAt(t); 
+    return n 
+  }
+  let r, o, i; 
+  try { 
+    r = c(e), o = c(t), i = c(n) 
+  } catch (t) { 
+    return Promise.reject('decryptMessage: failed conversion from base64 with "' + t.toString() + '"') 
+  } 
+  const text = await crypto.subtle.importKey("raw", r, { name: "AES-CBC" }, !1, ["decrypt"])
+  const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: o }, text, i) 
+  return (new TextDecoder).decode(decrypted)
+}
+
+
+async function analyseSearchResults(body) {
+
+  var KEY = body.match(/const KEY  = "(.+)";/)?.[1]
+  var IV = body.match(/const IV   = "(.+)";/)?.[1]
+  var DATA = body.match(/const DATA = "(.+)";/)?.[1]
+
+  if (DATA) {
+    const text = await decryptData(IV, KEY, DATA)
+
+    if (text.includes("We're sorry")) {
+      return []
+    } else {
+      return parseSearchResults(text)
+    }
+  } else {
+    return parseSearchResults(body)
+  }
+}
+
+function parseSearchResults(content) {
+  var root = HTMLParser.parse(content)
   var results = []
 
   for (var el of root.querySelectorAll('.section')) {
@@ -112,7 +150,7 @@ function analyseSearchResults(body) {
       for (var li of ul.querySelectorAll('li')) {
         var name = li.structuredText.replace('\n', ' ')
         var link = li.querySelector('a').getAttribute('href')
-        results.push({name:name, link:link})
+        results.push({ name: name, link: link })
       }
     }
   }

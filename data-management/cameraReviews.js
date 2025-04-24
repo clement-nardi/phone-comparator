@@ -2,7 +2,7 @@ import {fetchBodyWithCache} from './httpCache.js'
 import HTMLParser from 'node-html-parser'
 
 function fetchCameraReviews() {
-  return fetchBodyWithCache('https://www.dxomark.com/rankings/#smartphones')
+  return fetchBodyWithCache('https://www.dxomark.com/smartphones/')
   .then(body => {
     return extractCameraReviewsFromBody(body)
   })
@@ -11,10 +11,7 @@ function fetchCameraReviews() {
 async function extractCameraReviewsFromBody(body) {
   var reviews = []
 
-  const smartphones = JSON.parse(body.substring(
-    body.indexOf('data: {smartphones:') + 19,
-    body.indexOf(',cameras:[')
-  ))
+  const smartphones = JSON.parse(body.match(/var smartphonesAsJson = (.+);/)[1])
   console.log(smartphones)
 
   reviews = await Promise.all(
@@ -39,20 +36,23 @@ async function buildReview(smartphone) {
       if (Object.keys(review[section]).length === 0) {
         console.log('Unable to extract subscores from ' + smartphone[section].url)
       }
-
     }
-  }
-  if (smartphone.mobileScore) {
-    review.mobile.overallScore = smartphone.mobileScore
-  }
-  if (smartphone.selfieScore) {
-    review.selfie.overallScore = smartphone.selfieScore
-  }
-  if (smartphone.audioScore) {
-    review.audio.overallScore = smartphone.audioScore
-  }
-  if (smartphone.displayScore) {
-    review.display.overallScore = smartphone.displayScore
+    if (smartphone[section] && smartphone[section].subscores) {
+      if (!review[section]) {
+        review[section] = {}
+      }
+      for (let subScoreKey in smartphone[section].subscores) {
+        let subScore = smartphone[section].subscores[subScoreKey]
+        review[section][subScoreKey] = {overallScore: subScore}
+      }
+    }
+    const sectionScore = smartphone[section + 'Score']
+    if (sectionScore) {
+      if (!review[section]) {
+        review[section] = {}
+      }
+      review[section].overallScore = sectionScore
+    }
   }
   return review
 }
@@ -109,12 +109,15 @@ function extractSubScrores(body) {
   if (Object.keys(subScores).length == 0) {
     var root = HTMLParser.parse(body)
     for (var el of root.querySelectorAll('.subscoreHeading')) {
-      var classes = el.classNames.filter(c => c != "hide-best")
-      var score = el.querySelector('.currentDeviceSubScore').text
-      if (!subScores[classes[2]]) {
-        subScores[classes[2]] = {}
+      var classes = el.classNames.split(" ").filter(c => c != "hide-best")
+      var scoreEl = el.querySelector('.currentDeviceSubScore')
+      if (scoreEl) {
+        const score = scoreEl.text 
+        if (!subScores[classes[2]]) {
+          subScores[classes[2]] = {}
+        }
+        subScores[classes[2]][classes[1]] = parseFloat(score)
       }
-      subScores[classes[2]][classes[1]] = parseFloat(score)
     }
   }
 

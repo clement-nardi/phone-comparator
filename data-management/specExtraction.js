@@ -179,6 +179,11 @@ function extractCameraModuleSpecs(module) {
   extractNumber(moduleSpecs, 'megapixels', module, /([\d.]+) ?MP/, 1)
   extractNumber(moduleSpecs, 'maxAperture', module, /f\/([\d.]+)/, 1)
   extractNumber(moduleSpecs, 'focalLength', module, /(\d+)mm/, 1)
+  if (!moduleSpecs['focalLength']) {
+    extractNumber(moduleSpecs, 'focalLength', module, /(\d+)˚/, 1)
+    // convert to mm using tan
+    moduleSpecs['focalLength'] = 24 / Math.tan(moduleSpecs['focalLength']/2*Math.PI/180)
+  }
   extractNumber(moduleSpecs, 'opticalZoom', module, /([\d.]+)x optical/, 1)
   extractNumber(moduleSpecs, 'sensorSize', module, /1\/([\d.]+)"/, 1)
   moduleSpecs['sensorSize'] = 1/moduleSpecs['sensorSize']
